@@ -21,4 +21,12 @@ public class Box{
 		g.fillRect(top_left_pix_point.ix(), top_left_pix_point.iy(), width, height);
 	}
 	
+	public boolean isInside(int x, int y) {
+		if( (x >= top_left_pix_point.ix() && x <= bottom_right_pix_point.ix()) &
+			(y >= top_left_pix_point.iy() && x <= bottom_right_pix_point.iy()) ) {
+			return true;
+		}
+		return false;
+	}
+	
 }

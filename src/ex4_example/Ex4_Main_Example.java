@@ -23,9 +23,20 @@ import Robot.Play;
 public class Ex4_Main_Example {
 	public static void main(String[] args) {
 
+		/**
+		 * SCORE:
+		 * 	# Eaten by ghost: -20
+		 *  # Eat fruit: +fruit.getWeight()
+		 *  # Eat packman: +1
+		 *  # Out of box: -1
+		 *  # + TimeLeft/1000
+		 *  
+		 */
+		
+		
 
 		// 1) Create a "play" from a file (attached to Ex4)
-		String file_name = "data/Ex4_OOP_example8.csv";
+		String file_name = "data/Ex4_OOP_example5.csv";
 		Play play1 = new Play(file_name);
 
 		// 2) Set your ID's - of all the group members
