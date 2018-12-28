@@ -11,6 +11,7 @@ public class A_Star_2 {
 	public final static int HEIGHT = 600;
 	public final static int ROWS = 60;
 	public final static int COLS = 60;
+	public final static int DELAY_BETWEEN_MOVE = 1;
 	public final static int DELAY_AFTER_FINISH = 500;
 
 	public Cell[][] grid;
@@ -131,16 +132,17 @@ public class A_Star_2 {
 					if(openSet.contains(neigbour)) {
 						if(tempG < neigbour.gCost) {
 							neigbour.gCost = tempG;
+							neigbour.prev = curr_cell;
 						}
 					}
 					else {
 						neigbour.gCost = tempG;
+						neigbour.prev = curr_cell;
 						addOpen(neigbour);
 					}
 
 					neigbour.hCost = heuristic(neigbour, end);
 					neigbour.fCost = neigbour.gCost + neigbour.hCost;
-					neigbour.prev = curr_cell;
 
 					//Find the path
 					path = new ArrayList<Cell>();
@@ -153,7 +155,7 @@ public class A_Star_2 {
 					}
 					
 					try {
-						Thread.sleep(0);
+						Thread.sleep(DELAY_BETWEEN_MOVE);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -165,6 +167,7 @@ public class A_Star_2 {
 					}
 				}
 			}
+			
 		}
 		
 		System.out.println("No solution"); 
@@ -237,6 +240,10 @@ public class A_Star_2 {
 			if(Math.random() < 0.4) {
 				this.wall = true;
 			}
+			
+//			if(x > 10 && x < 40 && y > 20 && y < 25) {
+//				this.wall = true;
+//			}
 		}
 
 		public void addNeighbours(Cell[][] grid) {
@@ -311,9 +318,10 @@ public class A_Star_2 {
 				g.setColor(Color.decode("#dddddd"));
 			g.fillRect(x_margin + x*(cell_width+x_margin), y_margin + y*(cell_height+y_margin), cell_width, cell_height);
 
-			if(!margins)
+			if(!margins) {
 				g.setColor(Color.decode("#999999"));
-			g.drawRect(x_margin + x*(cell_width+x_margin), y_margin + y*(cell_height+y_margin), cell_width-1, cell_height-1);
+				g.drawRect(x_margin + x*(cell_width+x_margin), y_margin + y*(cell_height+y_margin), cell_width-1, cell_height-1);
+			}
 
 			//Draw f,g,h costs on screen inside cells
 			//			gui.drawStringCentered("f: "+fCost, Color.white, mid_x, top_left_y + (int)(cell_width/2.2), (int)(cell_width/3.3));
