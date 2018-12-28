@@ -90,35 +90,50 @@ public class A_Star {
 	}
 	
 	private static void createNodes(Node[] nodes, int mapWidth, int mapHeight, ArrayList<Box> boxes) {
-		A_Star.nodes = new Node[mapWidth * mapHeight];
+		nodes = new Node[mapWidth * mapHeight];
 		nodesCreated = true;
 		for (int x = 0; x < mapWidth; x++) {
 			for (int y = 0; y < mapHeight; y++) {
-				A_Star.nodes[(y * mapWidth) + x] = new Node();
-				A_Star.nodes[(y * mapWidth) + x].x = x;
-				A_Star.nodes[(y * mapWidth) + x].y = y;
+				if(nodes[(y * mapWidth) + x] == null) {
+					nodes[(y * mapWidth) + x] = new Node();
+					nodes[(y * mapWidth) + x].x = x;
+					nodes[(y * mapWidth) + x].y = y;
+				}
+				
 				
 				boolean searching = true;
 				Iterator<Box> it = boxes.iterator();
 				while(it.hasNext() && searching) {
 					Box curr_box = it.next();
 					if(curr_box.isInside(x, y)) {
-						A_Star.nodes[(y * mapWidth) + x].obstacle = true;
+						nodes[(y * mapWidth) + x].obstacle = true;
 						searching = false;
 					}
 				}
 				
 				if(y > 0) {
-					A_Star.nodes[(y * mapWidth) + x].neighbours.add(A_Star.nodes[((y-1) * mapWidth) + x]);
+					nodes[((y-1) * mapWidth) + x] = new Node();
+					nodes[((y-1) * mapWidth) + x].x = x;
+					nodes[((y-1) * mapWidth) + x].y = y-1;
+					nodes[(y * mapWidth) + x].neighbours.add(nodes[((y-1) * mapWidth) + x]);
 				}
 				if(y < mapHeight - 1) {
-					A_Star.nodes[(y * mapWidth) + x].neighbours.add(A_Star.nodes[((y+1) * mapWidth) + x]);
+					nodes[((y+1) * mapWidth) + x] = new Node();
+					nodes[((y+1) * mapWidth) + x].x = x;
+					nodes[((y+1) * mapWidth) + x].y = y+1;
+					nodes[(y * mapWidth) + x].neighbours.add(nodes[((y+1) * mapWidth) + x]);
 				}
 				if(x > 0) {
-					A_Star.nodes[(y * mapWidth) + x].neighbours.add(A_Star.nodes[(y * mapWidth) + (x-1)]);
+					nodes[(y * mapWidth) + (x-1)] = new Node();
+					nodes[(y * mapWidth) + (x-1)].x = x-1;
+					nodes[(y * mapWidth) + (x-1)].y = y;
+					nodes[(y * mapWidth) + x].neighbours.add(nodes[(y * mapWidth) + (x-1)]);
 				}
 				if(x < mapWidth - 1) {
-					A_Star.nodes[(y * mapWidth) + x].neighbours.add(A_Star.nodes[(y * mapWidth) + (x+1)]);
+					nodes[(y * mapWidth) + (x+1)] = new Node();
+					nodes[(y * mapWidth) + (x+1)].x = x+1;
+					nodes[(y * mapWidth) + (x+1)].y = y;
+					nodes[(y * mapWidth) + x].neighbours.add(nodes[(y * mapWidth) + (x+1)]);
 				}
 				
 			}

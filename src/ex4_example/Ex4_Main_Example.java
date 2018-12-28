@@ -37,7 +37,7 @@ public class Ex4_Main_Example {
 		
 
 		// 1) Create a "play" from a file (attached to Ex4)
-		String file_name = "data/Ex4_OOP_example1.csv";
+		String file_name = "data/Ex4_OOP_example4.csv";
 		Play play1 = new Play(file_name);
 
 		// 2) Set your ID's - of all the group members
@@ -98,10 +98,10 @@ public class Ex4_Main_Example {
 		}
 		// 8) stop the server - not needed in the real implementation.
 		//play1.stop();
-//		System.out.println("**** Done Game (user stop) ****");
+		System.out.println("**** Done Game (user stop) ****");
 
 		// 9) print the data & save to the course DB
 		String info = play1.getStatistics();
-//		System.out.println(info);
+		System.out.println(info);
 	}
 }
