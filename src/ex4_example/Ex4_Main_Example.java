@@ -3,6 +3,7 @@ import java.util.ArrayList;
 
 import Geom.Point3D;
 import Robot.Play;
+import algo.A_Star;
 /**
  * This is the basic example of how to work with the Ex4 "server" like system:
  * 1. Create a "play" with one of the 9 attached files 
@@ -36,13 +37,13 @@ public class Ex4_Main_Example {
 		
 
 		// 1) Create a "play" from a file (attached to Ex4)
-		String file_name = "data/Ex4_OOP_example5.csv";
+		String file_name = "data/Ex4_OOP_example1.csv";
 		Play play1 = new Play(file_name);
 
 		// 2) Set your ID's - of all the group members
 		play1.setIDs(1111,2222,3333);
 
-		// 3)Get the GPS coordinates of the "arena"
+		// 3)Get the GPS coordinates of the "arena"s
 		String map_data = play1.getBoundingBox();
 //		System.out.println("Bounding Box info: "+map_data);
 
@@ -53,13 +54,14 @@ public class Ex4_Main_Example {
 		GUI gui = new GUI(play1, start, end);
 		gui.start();
 		
+		
 		// 4) get the game-board data
 		ArrayList<String> board_data = play1.getBoard();
-		for(int i=0;i<board_data.size();i++) {
-			System.out.println(board_data.get(i));
-		}
-		System.out.println();
-		System.out.println("Init Player Location should be set using the bounding box info");
+//		for(int i=0;i<board_data.size();i++) {
+//			System.out.println(board_data.get(i));
+//		}
+//		System.out.println();
+//		System.out.println("Init Player Location should be set using the bounding box info");
 
 		// 5) Set the "player" init location - should be a valid location
 		play1.setInitLocation(32.1040,35.2061);
@@ -84,22 +86,22 @@ public class Ex4_Main_Example {
 
 				// 7.2) get the current score of the game
 				String info = play1.getStatistics();
-				System.out.println(info);
+//				System.out.println(info);
 				
 				// 7.3) get the game-board current state
-//				board_data = play1.getBoard();
-				for(int a=0;a<board_data.size();a++) {
-					System.out.println(board_data.get(a));
-				}
-				System.out.println();
+				board_data = play1.getBoard();
+//				for(int a=0;a<board_data.size();a++) {
+//					System.out.println(board_data.get(a));
+//				}
+//				System.out.println();
 			}
 		}
 		// 8) stop the server - not needed in the real implementation.
 		//play1.stop();
-		System.out.println("**** Done Game (user stop) ****");
+//		System.out.println("**** Done Game (user stop) ****");
 
 		// 9) print the data & save to the course DB
 		String info = play1.getStatistics();
-		System.out.println(info);
+//		System.out.println(info);
 	}
 }

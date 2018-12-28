@@ -1,30 +1,20 @@
 package ex4_example;
-import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.image.BufferStrategy;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
-
-import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
 
 import Coords.Cords;
 import Coords.GeoBox;
 import Coords.LatLonAlt;
-import Coords.Map;
 import Geom.Point3D;
 import Robot.Play;
+import algo.A_Star;
 import entities.Box;
 import entities.Fruit;
 import entities.Ghost;
 import entities.Packman;
 import entities.Player;
-import entities.Robot;
 import gfx.Assets;
 
 public class GUI implements Runnable {
@@ -47,7 +37,7 @@ public class GUI implements Runnable {
 	private ArrayList<Packman> packmans;
 	private ArrayList<Ghost> ghosts;
 	private ArrayList<Fruit> fruits;
-	private ArrayList<GeoBox> boxes;
+	private ArrayList<Box> boxes;
 
 	//Input
 	private KeyManager keyManager;
@@ -72,6 +62,7 @@ public class GUI implements Runnable {
 		display.getFrame().addKeyListener(keyManager);
 		display.getFrame().addMouseListener(mouseManager);
 
+
 	}
 
 	public void setWidth(int width) {
@@ -86,18 +77,31 @@ public class GUI implements Runnable {
 	}
 
 	private void move() {
-//		if(mouseManager.mousePosPoint().x() != -1) {
-//			System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" ); 
-//			Point3D player_gis_pos = pixelsToPoint(player.getLocation());
-//			Point3D mouse_gis_pos = pixelsToPoint(mouseManager.mousePosPoint());
-//			double[] player_loc = { player_gis_pos.x(), player_gis_pos.y(), 0};
-//			double[] mouse_loc = { mouse_gis_pos.x(), mouse_gis_pos.y(), 0 };
-//			double angle = Cords.azmDist(player_loc, mouse_loc)[0];
-//			play.rotate(angle);
-//		}
-		
-		if(keyManager.down)
-			play.rotate(0);
+		//		if(mouseManager.mousePosPoint().x() != -1) {
+		//			System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" ); 
+		//			Point3D player_gis_pos = pixelsToPoint(player.getLocation());
+		//			Point3D mouse_gis_pos = pixelsToPoint(mouseManager.mousePosPoint());
+		//			double[] player_loc = { player_gis_pos.x(), player_gis_pos.y(), 0};
+		//			double[] mouse_loc = { mouse_gis_pos.x(), mouse_gis_pos.y(), 0 };
+		//			double angle = Cords.azmDist(player_loc, mouse_loc)[0];
+		//			play.rotate(angle);
+		//		}
+
+		if(keyManager.down) {
+			ArrayList<Point3D> path = A_Star.solve(width, height, boxes, player.getLocation(), fruits.get(0).getLocation());
+			if(player.getLocation().ix() == player.dest.ix() && player.getLocation().iy() == player.dest.iy()) {
+				player.dest_id++;
+			}
+			Point3D dest = path.get(player.dest_id);
+			Point3D dest_gis = pixelsToPoint(dest);
+			Point3D player_gis = pixelsToPoint(player.getLocation());
+			double[] dest_coords = { dest_gis.x(), dest_gis.y(), 0 };
+			double[] player_coords = { player_gis.x(), player_gis.y(), 0 };
+			player.angle = Cords.azmDist(dest_coords, player_coords)[0];
+			play.rotate(player.angle);
+
+		}
+
 		if(keyManager.right)
 			play.rotate(90);
 		if(keyManager.up)
@@ -167,7 +171,7 @@ public class GUI implements Runnable {
 		packmans = new ArrayList<Packman>();
 		ghosts = new ArrayList<Ghost>();
 		fruits = new ArrayList<Fruit>();
-		boxes = new ArrayList<GeoBox>();
+		boxes = new ArrayList<Box>();
 		while(it.hasNext()) {
 			String line = it.next();
 			String[] words = line.split(",");
