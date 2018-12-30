@@ -5,6 +5,7 @@ import java.awt.image.BufferStrategy;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import Coords.Cords;
 import Coords.LatLonAlt;
 import Geom.Point3D;
 import Robot.Play;
@@ -37,6 +38,9 @@ public class GUI implements Runnable {
 	private ArrayList<Ghost> ghosts;
 	private ArrayList<Fruit> fruits;
 	private ArrayList<Box> boxes;
+	
+	private Point3D dest;
+	private int dest_id = 0;
 
 	//Input
 	private KeyManager keyManager;
@@ -51,6 +55,7 @@ public class GUI implements Runnable {
 		this.start = start;
 		this.end = end;
 		player = new Player(0, new Point3D(0,0,0), 0, 0);
+		dest = new Point3D(0,0);
 
 	}
 
@@ -120,6 +125,36 @@ public class GUI implements Runnable {
 			play.rotate(270);
 		if(keyManager.e)
 			calcPath();
+		if(keyManager.r)
+			calcAngle();
+	}
+
+	private void calcAngle() {
+		ArrayList<Point3D> path = star.getPath();
+		if(path.size() - dest_id - 1 > 0) {
+			dest = path.get(path.size() - dest_id - 1);
+			Point3D dest_gis = pixelsToPoint(dest);
+			Point3D player_gis = pixelsToPoint(player.getLocation());
+			dest_id++;
+			player.angle = azimuth(player_gis, dest_gis);
+			play.rotate(player.angle);
+			System.out.println("Angle: "+player.angle); 
+		}
+		else {
+			calcPath();
+			dest_id = 0;
+		}
+	}
+	
+	public double azimuth(Point3D gps0, Point3D gps1) {
+		int radius = 6371000;
+		double lat0 = Math.toRadians(gps0.x()); double lon0 = Math.toRadians(gps0.y());
+		double lat1 = Math.toRadians(gps1.x()); double lon1 = Math.toRadians(gps1.y());
+		double dlat = Math.toRadians(gps1.x() - gps0.x());
+		double dlon = Math.toRadians(gps1.y() - gps0.y());
+		double azimuth = Math.atan2(Math.sin(dlon) * Math.cos(lat1), Math.cos(lat0) * Math.sin(lat1) - Math.sin(lat0)
+						 * Math.cos(lat1) * Math.cos(dlon));
+		return Math.toDegrees(azimuth);
 	}
 
 	private void render(){
@@ -135,6 +170,14 @@ public class GUI implements Runnable {
 
 		g.drawImage(Assets.map, 0, 0, null);
 		drawBoard(player, packmans, ghosts, fruits, boxes);
+		
+		System.out.println("Dest: "+dest);
+		g.fillOval(dest.ix(), dest.iy(), 20, 20);
+		
+		g.setColor(Color.red);
+		if(!fruits.isEmpty())
+			g.drawLine(player.getLocation().ix(), player.getLocation().iy(), fruits.get(0).getLocation().ix(), fruits.get(0).getLocation().iy());
+		
 		
 		if(star != null) {
 			ArrayList<Point3D> path = star.getPath();
@@ -199,10 +242,7 @@ public class GUI implements Runnable {
 			Point3D point = it.next();
 			g.fillRect(point.ix(), point.iy(), 2, 2);
 		}
-		g.setColor(Color.red);
-		if(!fruits.isEmpty())
-			g.drawLine(player.getLocation().ix(), player.getLocation().iy(), fruits.get(0).getLocation().ix(), fruits.get(0).getLocation().iy());
-
+		
 	}
 
 	private void loadBoard(Play play) {
@@ -250,7 +290,7 @@ public class GUI implements Runnable {
 				int box_width = bottom_right_pix_point.ix() - top_left_pix_point.ix();
 				int box_height = bottom_right_pix_point.iy() - top_left_pix_point.iy();
 				Box box = new Box(top_left_pix_point, bottom_right_pix_point, box_width, box_height);
-				boxes.add(box);
+				this.boxes.add(box);
 			}
 		}
 	}

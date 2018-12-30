@@ -1,5 +1,6 @@
 package entities;
 
+import java.awt.Color;
 import java.awt.Graphics;
 
 import Geom.Point3D;
@@ -22,8 +23,9 @@ public class Box{
 	}
 	
 	public boolean isInside(int x, int y) {
-		if( (x >= top_left_pix_point.ix() && x <= bottom_right_pix_point.ix()) &
-			(y >= top_left_pix_point.iy() && x <= bottom_right_pix_point.iy()) ) {
+		int margin = 20;
+		if( (x >= top_left_pix_point.ix() - margin && x <= bottom_right_pix_point.ix() + margin) &
+			(y >= top_left_pix_point.iy() - margin && y <= bottom_right_pix_point.iy() + margin) ) {
 			return true;
 		}
 		return false;

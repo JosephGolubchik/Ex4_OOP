@@ -15,7 +15,7 @@ public class A_Star_2 {
 	public static int COLS;
 	public static int ROWS;
 	public final static int DELAY_BETWEEN_MOVE = 0;
-	public final static int DELAY_AFTER_FINISH = 500;
+	public final static int DELAY_AFTER_FINISH = 0;
 
 	public Cell[][] grid;
 
@@ -26,10 +26,12 @@ public class A_Star_2 {
 
 	public ArrayList<Cell> path;
 	public ArrayList<Box> boxes;
-	
+
 	public Point3D start_point, end_point;
 
 	public boolean done;
+
+	public boolean gridCreated;
 
 	public static void main(String[] args) {
 		A_Star_2 star = new A_Star_2(new Point3D(0,0,0), new Point3D(716,321,0), null);
@@ -41,19 +43,16 @@ public class A_Star_2 {
 	public A_Star_2(Point3D start_point, Point3D end_point, ArrayList<Box> boxes) {
 		this.COLS = 1433;
 		this.ROWS = 642;
-//		this.WIDTH = 1433;
-//		this.HEIGHT = 642;
-//		this.WIDTH = 500;
-//		this.HEIGHT = 500;
 		this.boxes = boxes;
 		initGrid();
-//		gui = new A_Star_GUI(this, WIDTH, HEIGHT);
-//		gui.setMargins(false);
-//		gui.start();
+		//		gui = new A_Star_GUI(this, WIDTH, HEIGHT);
+		//		gui.setMargins(false);
+		//		gui.start();
 		done = false;
 		path = new ArrayList<Cell>();
 		this.start_point = start_point;
 		this.end_point = end_point;
+		gridCreated = false;
 	}
 
 	public double heuristic(Cell c0, Cell c1) {
@@ -69,18 +68,21 @@ public class A_Star_2 {
 		openSet = new ArrayList();
 		closedSet = new ArrayList();
 
-		for (int i = 0; i < grid.length; i++) {
-			for (int j = 0; j < grid[0].length; j++) {
-				grid[i][j] = new Cell(i,j);
+		if(!gridCreated) {
+			for (int i = 0; i < grid.length; i++) {
+				for (int j = 0; j < grid[0].length; j++) {
+					grid[i][j] = new Cell(i,j);
+				}
 			}
-		}
 
-		for (int i = 0; i < grid.length; i++) {
-			for (int j = 0; j < grid[0].length; j++) {
-				grid[i][j].addNeighbours(grid);
+			for (int i = 0; i < grid.length; i++) {
+				for (int j = 0; j < grid[0].length; j++) {
+					grid[i][j].addNeighbours(grid);
+				}
 			}
+			
+			gridCreated = true;
 		}
-
 		Cell start = grid[start_point.ix()][start_point.iy()];
 		Cell end = grid[end_point.ix()][end_point.iy()];
 		start.wall = false;
@@ -238,15 +240,6 @@ public class A_Star_2 {
 		for (int x = 0; x < COLS; x++) {
 			for (int y = 0; y < ROWS; y++) {
 				grid[x][y] = new Cell(x,y);
-
-				if(boxes != null) {
-					Iterator<Box> box_it = boxes.iterator();
-					while(box_it.hasNext()) {
-						Box box = box_it.next();
-						if(box.isInside(x, y))
-							grid[x][y].wall = true;
-					}
-				}
 			}
 		}
 	}
@@ -272,11 +265,16 @@ public class A_Star_2 {
 			prev = null;
 			wall = false;
 
+			if(boxes != null) {
+				Iterator<Box> box_it = boxes.iterator();
+				while(box_it.hasNext()) {
+					Box box = box_it.next();
+					if(box.isInside(x, y)) {
+						this.wall = true;
+					}
+				}
+			}
 
-
-			//			if(Math.random() < 0.4) {
-			//				this.wall = true;
-			//			}
 
 		}
 
