@@ -7,6 +7,8 @@ import java.util.Iterator;
 
 import Geom.Point3D;
 import entities.Box;
+import entities.Ghost;
+import ex4_example.GUI;
 
 public class A_Star_2 {
 
@@ -19,7 +21,7 @@ public class A_Star_2 {
 
 	public Cell[][] grid;
 
-	public A_Star_GUI gui;
+	public GUI gui;
 
 	public ArrayList<Cell> openSet;
 	public ArrayList<Cell> closedSet;
@@ -34,20 +36,15 @@ public class A_Star_2 {
 	public boolean gridCreated;
 
 	public static void main(String[] args) {
-		A_Star_2 star = new A_Star_2(new Point3D(0,0,0), new Point3D(716,321,0), null);
-		long time = System.currentTimeMillis();
-		star.algo();
-		System.out.println("Runtime: " + (System.currentTimeMillis() - time - DELAY_AFTER_FINISH)); 
+
 	}
 
-	public A_Star_2(Point3D start_point, Point3D end_point, ArrayList<Box> boxes) {
+	public A_Star_2(Point3D start_point, Point3D end_point, ArrayList<Box> boxes, GUI gui) {
 		this.COLS = 1433;
 		this.ROWS = 642;
 		this.boxes = boxes;
+		this.gui = gui;
 		initGrid();
-		//		gui = new A_Star_GUI(this, WIDTH, HEIGHT);
-		//		gui.setMargins(false);
-		//		gui.start();
 		done = false;
 		path = new ArrayList<Cell>();
 		this.start_point = start_point;
@@ -242,6 +239,9 @@ public class A_Star_2 {
 				grid[x][y] = new Cell(x,y);
 			}
 		}
+		
+		
+		
 	}
 
 	class Cell {
@@ -270,6 +270,18 @@ public class A_Star_2 {
 				while(box_it.hasNext()) {
 					Box box = box_it.next();
 					if(box.isInside(x, y)) {
+						this.wall = true;
+					}
+				}
+			}	
+			
+			if(gui.getGhosts() != null) {
+				Iterator<Ghost> ghost_it = gui.getGhosts().iterator();
+				while(ghost_it.hasNext()) {
+					Ghost ghost = ghost_it.next();
+					int margin = 40;
+					if( (x >= ghost.getLocation().ix() - margin && x <= ghost.getLocation().ix() + margin) &
+						(y >= ghost.getLocation().iy() - margin && y <= ghost.getLocation().iy() + margin) ) {
 						this.wall = true;
 					}
 				}

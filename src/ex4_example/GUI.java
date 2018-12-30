@@ -36,6 +36,7 @@ public class GUI implements Runnable {
 	private Player player;
 	private ArrayList<Packman> packmans;
 	private ArrayList<Ghost> ghosts;
+
 	private ArrayList<Fruit> fruits;
 	private ArrayList<Box> boxes;
 	
@@ -138,7 +139,6 @@ public class GUI implements Runnable {
 			dest_id++;
 			player.angle = azimuth(player_gis, dest_gis);
 			play.rotate(player.angle);
-			System.out.println("Angle: "+player.angle); 
 		}
 		else {
 			calcPath();
@@ -171,7 +171,6 @@ public class GUI implements Runnable {
 		g.drawImage(Assets.map, 0, 0, null);
 		drawBoard(player, packmans, ghosts, fruits, boxes);
 		
-		System.out.println("Dest: "+dest);
 		g.fillOval(dest.ix(), dest.iy(), 20, 20);
 		
 		g.setColor(Color.red);
@@ -230,7 +229,7 @@ public class GUI implements Runnable {
 	public void calcPath() {
 		Point3D player_loc = player.getLocation();
 		Point3D dest_loc = fruits.get(0).getLocation();
-		star = new A_Star_2(player_loc, dest_loc, boxes);
+		star = new A_Star_2(player_loc, dest_loc, boxes, this);
 		
 		star.algo();
 	}
@@ -377,6 +376,22 @@ public class GUI implements Runnable {
 		double newLong = start.y() + longDiff;
 
 		return new Point3D(newLat, newLong);
+	}
+	
+	public ArrayList<Packman> getPackmans() {
+		return packmans;
+	}
+
+	public ArrayList<Ghost> getGhosts() {
+		return ghosts;
+	}
+
+	public ArrayList<Fruit> getFruits() {
+		return fruits;
+	}
+
+	public ArrayList<Box> getBoxes() {
+		return boxes;
 	}
 
 }
