@@ -5,12 +5,10 @@ import java.awt.image.BufferStrategy;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import Coords.Cords;
-import Coords.GeoBox;
 import Coords.LatLonAlt;
 import Geom.Point3D;
 import Robot.Play;
-import algo.A_Star;
+import algo.A_Star_2;
 import entities.Box;
 import entities.Fruit;
 import entities.Ghost;
@@ -43,6 +41,8 @@ public class GUI implements Runnable {
 	//Input
 	private KeyManager keyManager;
 	private MouseManager mouseManager;
+	
+	private A_Star_2 star;
 
 	public GUI(Play play, Point3D start, Point3D end){
 		keyManager = new KeyManager();
@@ -89,36 +89,37 @@ public class GUI implements Runnable {
 		//			play.rotate(angle);
 		//		}
 
-		if(keyManager.down) {
-			ArrayList<Point3D> path = A_Star.solve(width, height, boxes, player.getLocation(), fruits.get(0).getLocation());
-			g.setColor(Color.green);
-			if(player.getLocation().ix() == player.dest.ix() && player.getLocation().iy() == player.dest.iy()) {
-				if(player.dest_id <= path.size())
-					player.dest_id++;
-				else
-					return;
-			}
-			Point3D dest = path.get(player.dest_id);
-			Point3D dest_gis = pixelsToPoint(dest);
-			
-			g.drawRect(dest_gis.ix(), dest_gis.iy(), 100, 100);
-			System.out.println(dest_gis); 
-			
-			Point3D player_gis = pixelsToPoint(player.getLocation());
-			double[] dest_coords = { dest_gis.x(), dest_gis.y(), 0 };
-			double[] player_coords = { player_gis.x(), player_gis.y(), 0 };
-			player.angle = Cords.azmDist(dest_coords, player_coords)[0];
-			System.out.println(player.angle); 
-			play.rotate(player.angle);
-
-		}
-
+//		if(keyManager.down) {
+//			g.setColor(Color.green);
+//			if(player.getLocation().ix() == player.dest.ix() && player.getLocation().iy() == player.dest.iy()) {
+//				if(player.dest_id <= path.size())
+//					player.dest_id++;
+//				else
+//					return;
+//			}
+//			Point3D dest = path.get(player.dest_id);
+//			Point3D dest_gis = pixelsToPoint(dest);
+//			
+//			g.drawRect(dest_gis.ix(), dest_gis.iy(), 100, 100);
+//			System.out.println(dest_gis); 
+//			
+//			Point3D player_gis = pixelsToPoint(player.getLocation());
+//			double[] dest_coords = { dest_gis.x(), dest_gis.y(), 0 };
+//			double[] player_coords = { player_gis.x(), player_gis.y(), 0 };
+//			player.angle = Cords.azmDist(dest_coords, player_coords)[0];
+//			System.out.println(player.angle); 
+//			play.rotate(player.angle);
+//		}
+		if(keyManager.down)
+			play.rotate(0);
 		if(keyManager.right)
 			play.rotate(90);
 		if(keyManager.up)
 			play.rotate(180);
 		if(keyManager.left)
 			play.rotate(270);
+		if(keyManager.e)
+			calcPath();
 	}
 
 	private void render(){
@@ -134,6 +135,13 @@ public class GUI implements Runnable {
 
 		g.drawImage(Assets.map, 0, 0, null);
 		drawBoard(player, packmans, ghosts, fruits, boxes);
+		
+		if(star != null) {
+			ArrayList<Point3D> path = star.getPath();
+			drawPath(path);
+		}
+		
+//		drawPath();
 
 		//End Drawing!
 		bs.show();
@@ -173,6 +181,27 @@ public class GUI implements Runnable {
 		}
 
 		stop();
+
+	}
+	
+	public void calcPath() {
+		Point3D player_loc = player.getLocation();
+		Point3D dest_loc = fruits.get(0).getLocation();
+		star = new A_Star_2(player_loc, dest_loc, boxes);
+		
+		star.algo();
+	}
+	
+	public void drawPath(ArrayList<Point3D> path) {
+		Iterator<Point3D> it = path.iterator();
+		g.setColor(Color.white);
+		while(it.hasNext()) {
+			Point3D point = it.next();
+			g.fillRect(point.ix(), point.iy(), 2, 2);
+		}
+		g.setColor(Color.red);
+		if(!fruits.isEmpty())
+			g.drawLine(player.getLocation().ix(), player.getLocation().iy(), fruits.get(0).getLocation().ix(), fruits.get(0).getLocation().iy());
 
 	}
 

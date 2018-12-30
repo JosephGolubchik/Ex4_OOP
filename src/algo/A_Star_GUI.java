@@ -78,8 +78,8 @@ public class A_Star_GUI implements Runnable {
 
 		g.fillRect(0, 0, width, height);
 		
-		for (int x = 0; x < star.ROWS; x++) {
-			for (int y = 0; y < star.COLS; y++) {
+		for (int x = 0; x < star.COLS; x++) {
+			for (int y = 0; y < star.ROWS; y++) {
 				star.grid[x][y].render(g, margins);
 			}
 		}

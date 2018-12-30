@@ -5,13 +5,16 @@ import java.awt.Graphics;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import Geom.Point3D;
+import entities.Box;
+
 public class A_Star_2 {
 
-	public final static int WIDTH = 600;
-	public final static int HEIGHT = 600;
-	public final static int ROWS = 60;
-	public final static int COLS = 60;
-	public final static int DELAY_BETWEEN_MOVE = 1;
+	public static int WIDTH;
+	public static int HEIGHT;
+	public static int COLS;
+	public static int ROWS;
+	public final static int DELAY_BETWEEN_MOVE = 0;
 	public final static int DELAY_AFTER_FINISH = 500;
 
 	public Cell[][] grid;
@@ -22,30 +25,42 @@ public class A_Star_2 {
 	public ArrayList<Cell> closedSet;
 
 	public ArrayList<Cell> path;
+	public ArrayList<Box> boxes;
 	
+	public Point3D start_point, end_point;
+
 	public boolean done;
 
 	public static void main(String[] args) {
-		A_Star_2 star = new A_Star_2();
+		A_Star_2 star = new A_Star_2(new Point3D(0,0,0), new Point3D(716,321,0), null);
 		long time = System.currentTimeMillis();
 		star.algo();
 		System.out.println("Runtime: " + (System.currentTimeMillis() - time - DELAY_AFTER_FINISH)); 
 	}
 
-	public A_Star_2() {
-		gui = new A_Star_GUI(this, WIDTH, HEIGHT);
-		gui.setMargins(false);
+	public A_Star_2(Point3D start_point, Point3D end_point, ArrayList<Box> boxes) {
+		this.COLS = 1433;
+		this.ROWS = 642;
+//		this.WIDTH = 1433;
+//		this.HEIGHT = 642;
+//		this.WIDTH = 500;
+//		this.HEIGHT = 500;
+		this.boxes = boxes;
 		initGrid();
-		gui.start();
-		grid = new Cell[ROWS][COLS];
+//		gui = new A_Star_GUI(this, WIDTH, HEIGHT);
+//		gui.setMargins(false);
+//		gui.start();
 		done = false;
+		path = new ArrayList<Cell>();
+		this.start_point = start_point;
+		this.end_point = end_point;
 	}
 
 	public double heuristic(Cell c0, Cell c1) {
 		double dx = Math.abs(c0.x - c1.x);
 		double dy = Math.abs(c0.y - c1.y);
 		double d = Math.sqrt(dx*dx + dy*dy);
-//		double d = dx + dy;
+		//		double d = dx + dy;
 		return d;
 	}
 
@@ -66,8 +81,8 @@ public class A_Star_2 {
 			}
 		}
 
-		Cell start = grid[0][0];
-		Cell end = grid[ROWS-1][COLS-1];
+		Cell start = grid[start_point.ix()][start_point.iy()];
+		Cell end = grid[end_point.ix()][end_point.iy()];
 		start.wall = false;
 		end.wall = false;
 
@@ -120,15 +135,15 @@ public class A_Star_2 {
 				double tempG;
 				if(!closedSet.contains(neigbour) && !neigbour.wall) {
 					if( (neigbour.x == curr_cell.x+1 && neigbour.y == curr_cell.y+1) ||
-						(neigbour.x == curr_cell.x-1 && neigbour.y == curr_cell.y+1) ||
-						(neigbour.x == curr_cell.x+1 && neigbour.y == curr_cell.y-1) ||
-						(neigbour.x == curr_cell.x-1 && neigbour.y == curr_cell.y-1) ) {
+							(neigbour.x == curr_cell.x-1 && neigbour.y == curr_cell.y+1) ||
+							(neigbour.x == curr_cell.x+1 && neigbour.y == curr_cell.y-1) ||
+							(neigbour.x == curr_cell.x-1 && neigbour.y == curr_cell.y-1) ) {
 						tempG = curr_cell.gCost + Math.sqrt(2);
 					}
 					else {
 						tempG = curr_cell.gCost + 1;
 					}
-					
+
 					if(openSet.contains(neigbour)) {
 						if(tempG < neigbour.gCost) {
 							neigbour.gCost = tempG;
@@ -153,13 +168,13 @@ public class A_Star_2 {
 						addPath(temp.prev);
 						temp = temp.prev;
 					}
-					
+
 					try {
 						Thread.sleep(DELAY_BETWEEN_MOVE);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
-					
+
 					Iterator<Cell> path_it = path.iterator();
 					while(path_it.hasNext()) {
 						Cell cell = path_it.next();
@@ -167,9 +182,9 @@ public class A_Star_2 {
 					}
 				}
 			}
-			
+
 		}
-		
+
 		System.out.println("No solution"); 
 		try {
 			Thread.sleep(DELAY_AFTER_FINISH);
@@ -177,6 +192,18 @@ public class A_Star_2 {
 			e.printStackTrace();
 		}
 		done = true;
+	}
+
+	public ArrayList<Point3D> getPath(){
+		ArrayList<Point3D> points = new ArrayList<Point3D>();
+
+		Iterator<Cell> it = path.iterator();
+		while(it.hasNext()) {
+			Cell curr = it.next();
+			points.add(new Point3D(curr.x, curr.y, 0));
+		}
+
+		return points;
 	}
 
 	private void addPath(Cell cell) {
@@ -207,12 +234,20 @@ public class A_Star_2 {
 	}
 
 	public void initGrid() {
-		grid = new Cell[ROWS][COLS]; 
+		grid = new Cell[COLS][ROWS]; 
 		for (int x = 0; x < COLS; x++) {
 			for (int y = 0; y < ROWS; y++) {
 				grid[x][y] = new Cell(x,y);
-			}
 
+				if(boxes != null) {
+					Iterator<Box> box_it = boxes.iterator();
+					while(box_it.hasNext()) {
+						Box box = box_it.next();
+						if(box.isInside(x, y))
+							grid[x][y].wall = true;
+					}
+				}
+			}
 		}
 	}
 
@@ -237,38 +272,37 @@ public class A_Star_2 {
 			prev = null;
 			wall = false;
 
-			if(Math.random() < 0.4) {
-				this.wall = true;
-			}
-			
-//			if(x > 10 && x < 40 && y > 20 && y < 25) {
-//				this.wall = true;
-//			}
+
+
+			//			if(Math.random() < 0.4) {
+			//				this.wall = true;
+			//			}
+
 		}
 
 		public void addNeighbours(Cell[][] grid) {
 			if(y > 0) {
 				neighbours.add(grid[x][y-1]);
 			}
-			if(y < grid.length - 1) {
+			if(y < grid[0].length - 1) {
 				neighbours.add(grid[x][y+1]);
 			}
 			if(x > 0) {
 				neighbours.add(grid[x-1][y]);
 			}
-			if(x < grid[0].length - 1) {
+			if(x < grid.length - 1) {
 				neighbours.add(grid[x+1][y]);
 			}
 			if(x > 0 && y > 0) {
 				neighbours.add(grid[x-1][y-1]);
 			}
-			if(x > 0 && y < grid.length - 1) {
+			if(x > 0 && y < grid[0].length - 1) {
 				neighbours.add(grid[x-1][y+1]);
 			}
-			if(x < grid[0].length - 1 && y > 0) {
+			if(x < grid.length - 1 && y > 0) {
 				neighbours.add(grid[x+1][y-1]);
 			}
-			if(x < grid[0].length - 1 && y < grid.length - 1) {
+			if(x < grid.length - 1 && y < grid[0].length - 1) {
 				neighbours.add(grid[x+1][y+1]);
 			}
 		}
@@ -299,8 +333,8 @@ public class A_Star_2 {
 			else {
 				x_margin = 0;
 				y_margin = 0;
-				cell_width = WIDTH/ROWS;
-				cell_height = HEIGHT/COLS;
+				cell_width = WIDTH/COLS;
+				cell_height = HEIGHT/ROWS;
 				top_left_x = x*cell_width;
 				top_left_y = y*cell_height;
 				mid_x = top_left_x + cell_width/2;
