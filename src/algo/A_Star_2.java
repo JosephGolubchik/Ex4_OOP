@@ -35,20 +35,18 @@ public class A_Star_2 {
 
 	public boolean gridCreated;
 
-	public static void main(String[] args) {
-
-	}
+	public int cell_size = 4;
 
 	public A_Star_2(Point3D start_point, Point3D end_point, ArrayList<Box> boxes, GUI gui) {
-		this.COLS = 1433;
-		this.ROWS = 642;
+		this.COLS = gui.getWidth()/cell_size;
+		this.ROWS = gui.getHeight()/cell_size;
 		this.boxes = boxes;
 		this.gui = gui;
 		initGrid();
 		done = false;
 		path = new ArrayList<Cell>();
-		this.start_point = start_point;
-		this.end_point = end_point;
+		this.start_point = new Point3D(start_point.ix()/cell_size, start_point.iy()/cell_size);
+		this.end_point = new Point3D(end_point.ix()/cell_size, end_point.iy()/cell_size);
 		gridCreated = false;
 	}
 
@@ -199,7 +197,7 @@ public class A_Star_2 {
 		Iterator<Cell> it = path.iterator();
 		while(it.hasNext()) {
 			Cell curr = it.next();
-			points.add(new Point3D(curr.x, curr.y, 0));
+			points.add(new Point3D(curr.x*cell_size, curr.y*cell_size, 0));
 		}
 
 		return points;
@@ -269,7 +267,7 @@ public class A_Star_2 {
 				Iterator<Box> box_it = boxes.iterator();
 				while(box_it.hasNext()) {
 					Box box = box_it.next();
-					if(box.isInside(x, y)) {
+					if(box.isInside(x*cell_size, y*cell_size)) {
 						this.wall = true;
 					}
 				}
@@ -280,8 +278,8 @@ public class A_Star_2 {
 				while(ghost_it.hasNext()) {
 					Ghost ghost = ghost_it.next();
 					int margin = 40;
-					if( (x >= ghost.getLocation().ix() - margin && x <= ghost.getLocation().ix() + margin) &
-						(y >= ghost.getLocation().iy() - margin && y <= ghost.getLocation().iy() + margin) ) {
+					if( (x*cell_size >= ghost.getLocation().ix() - margin && x*cell_size <= ghost.getLocation().ix() + margin) &
+						(y*cell_size >= ghost.getLocation().iy() - margin && y*cell_size <= ghost.getLocation().iy() + margin) ) {
 						this.wall = true;
 					}
 				}

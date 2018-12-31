@@ -85,37 +85,6 @@ public class GUI implements Runnable {
 	}
 
 	private void move() {
-		//		if(mouseManager.mousePosPoint().x() != -1) {
-		//			System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" ); 
-		//			Point3D player_gis_pos = pixelsToPoint(player.getLocation());
-		//			Point3D mouse_gis_pos = pixelsToPoint(mouseManager.mousePosPoint());
-		//			double[] player_loc = { player_gis_pos.x(), player_gis_pos.y(), 0};
-		//			double[] mouse_loc = { mouse_gis_pos.x(), mouse_gis_pos.y(), 0 };
-		//			double angle = Cords.azmDist(player_loc, mouse_loc)[0];
-		//			play.rotate(angle);
-		//		}
-
-//		if(keyManager.down) {
-//			g.setColor(Color.green);
-//			if(player.getLocation().ix() == player.dest.ix() && player.getLocation().iy() == player.dest.iy()) {
-//				if(player.dest_id <= path.size())
-//					player.dest_id++;
-//				else
-//					return;
-//			}
-//			Point3D dest = path.get(player.dest_id);
-//			Point3D dest_gis = pixelsToPoint(dest);
-//			
-//			g.drawRect(dest_gis.ix(), dest_gis.iy(), 100, 100);
-//			System.out.println(dest_gis); 
-//			
-//			Point3D player_gis = pixelsToPoint(player.getLocation());
-//			double[] dest_coords = { dest_gis.x(), dest_gis.y(), 0 };
-//			double[] player_coords = { player_gis.x(), player_gis.y(), 0 };
-//			player.angle = Cords.azmDist(dest_coords, player_coords)[0];
-//			System.out.println(player.angle); 
-//			play.rotate(player.angle);
-//		}
 		if(keyManager.down)
 			play.rotate(0);
 		if(keyManager.right)
@@ -136,7 +105,11 @@ public class GUI implements Runnable {
 			dest = path.get(path.size() - dest_id - 1);
 			Point3D dest_gis = pixelsToPoint(dest);
 			Point3D player_gis = pixelsToPoint(player.getLocation());
-			dest_id++;
+			int radius = 5;
+			if((player.getLocation().ix() >= dest.ix()-radius && player.getLocation().ix() <= dest.ix()+radius) &&
+			  (player.getLocation().iy() >= dest.iy()-radius && player.getLocation().iy() <= dest.iy()+radius)) {
+				dest_id++;
+			}
 			player.angle = azimuth(player_gis, dest_gis);
 			play.rotate(player.angle);
 		}
@@ -171,20 +144,15 @@ public class GUI implements Runnable {
 		g.drawImage(Assets.map, 0, 0, null);
 		drawBoard(player, packmans, ghosts, fruits, boxes);
 		
-		g.fillOval(dest.ix(), dest.iy(), 20, 20);
-		
 		g.setColor(Color.red);
 		if(!fruits.isEmpty())
 			g.drawLine(player.getLocation().ix(), player.getLocation().iy(), fruits.get(0).getLocation().ix(), fruits.get(0).getLocation().iy());
-		
 		
 		if(star != null) {
 			ArrayList<Point3D> path = star.getPath();
 			drawPath(path);
 		}
 		
-//		drawPath();
-
 		//End Drawing!
 		bs.show();
 		g.dispose();
