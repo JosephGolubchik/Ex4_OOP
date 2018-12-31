@@ -34,8 +34,9 @@ public class A_Star_2 {
 	public boolean done;
 
 	public boolean gridCreated;
+	public boolean didFirstCalc;
 
-	public int cell_size = 6;
+	public int cell_size = 2;
 	public int last_cell_size = cell_size;
 
 	public A_Star_2(Point3D start_point, Point3D end_point, ArrayList<Box> boxes, GUI gui) {
@@ -49,6 +50,7 @@ public class A_Star_2 {
 		this.start_point = new Point3D(start_point.ix()/cell_size, start_point.iy()/cell_size);
 		this.end_point = new Point3D(end_point.ix()/cell_size, end_point.iy()/cell_size);
 		gridCreated = false;
+		didFirstCalc = false;
 	}
 
 	public double heuristic(Cell c0, Cell c1) {
@@ -114,6 +116,7 @@ public class A_Star_2 {
 				}
 
 				System.out.println("Done!"); 
+				didFirstCalc = true;
 				try {
 					Thread.sleep(DELAY_AFTER_FINISH);
 				} catch (InterruptedException e) {
@@ -184,6 +187,7 @@ public class A_Star_2 {
 		}
 
 		System.out.println("No solution"); 
+		didFirstCalc = true;
 		try {
 			Thread.sleep(DELAY_AFTER_FINISH);
 		} catch (InterruptedException e) {

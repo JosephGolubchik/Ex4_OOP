@@ -100,17 +100,31 @@ public class GUI implements Runnable {
 	}
 
 	private void calcAngle() {
+		int dist_in_points_from_fruit = 1;
 		ArrayList<Point3D> path = star.getPath();
 		if(path.size() - dest_id - 1 > 0) {
 			dest = path.get(path.size() - dest_id - 1);
 			Point3D dest_gis = pixelsToPoint(dest);
 			Point3D player_gis = pixelsToPoint(player.getLocation());
-			int radius = 5;
-			if((player.getLocation().ix() >= dest.ix()-radius && player.getLocation().ix() <= dest.ix()+radius) &&
-			  (player.getLocation().iy() >= dest.iy()-radius && player.getLocation().iy() <= dest.iy()+radius)) {
+			int radius = 0;
+			int radius2 = 5;
+			if((player.getLocation().ix() >= path.get(dist_in_points_from_fruit).ix()-radius && player.getLocation().ix() <= path.get(dist_in_points_from_fruit).ix()+radius) &&
+				(player.getLocation().iy() >= path.get(dist_in_points_from_fruit).iy()-radius && player.getLocation().iy() <= path.get(dist_in_points_from_fruit).iy()+radius)) {
+				System.out.println("got to point before fruit");
+				star.last_cell_size = star.cell_size;
+				star.cell_size = 1;
+				star.algo();
+				star.cell_size = star.last_cell_size;
+				path = star.getPath();
+				System.out.println(path.size());
+				dest = path.get(0);
+			}
+			else if((player.getLocation().ix() >= dest.ix()-radius2 && player.getLocation().ix() <= dest.ix()+radius2) &&
+			  (player.getLocation().iy() >= dest.iy()-radius2 && player.getLocation().iy() <= dest.iy()+radius2)) {
 				dest_id++;
 			}
 			player.angle = azimuth(player_gis, dest_gis);
+			System.out.println("Angle: "+player.angle);
 			play.rotate(player.angle);
 		}
 		else {
@@ -198,20 +212,22 @@ public class GUI implements Runnable {
 		Point3D player_loc = player.getLocation();
 		Point3D dest_loc = fruits.get(0).getLocation();
 		star = new A_Star_2(player_loc, dest_loc, boxes, this);
-		if(star.path.size() == 0) {
+		if(!star.didFirstCalc) {
 			star.algo();
 		}
 		else {
+			System.out.println(":)");
 			Point3D before_fruit = star.getPointBeforeFruit();
-			int radius = 0;
-			if((player_loc.ix() <= before_fruit.ix() - radius && player_loc.ix() <= before_fruit.ix() - radius) &&
-				(player_loc.iy() <= before_fruit.iy() - radius && player_loc.iy() <= before_fruit.ix() - radius)) {
-				star.last_cell_size = star.cell_size;
-				star.cell_size = 1;
-				star.algo();
-				star.cell_size = star.last_cell_size;
-			}
+			int radius = 5;
+//			if((player_loc.ix() <= before_fruit.ix() - radius && player_loc.ix() <= before_fruit.ix() - radius) &&
+//				(player_loc.iy() <= before_fruit.iy() - radius && player_loc.iy() <= before_fruit.ix() - radius)) {
+//				star.last_cell_size = star.cell_size;
+//				star.cell_size = 1;
+//				star.algo();
+//				star.cell_size = star.last_cell_size;
+//			}
 		}
+//		calcAngle();
 	}
 	
 	public void drawPath(ArrayList<Point3D> path) {
