@@ -35,7 +35,7 @@ public class A_Star_2 {
 
 	public boolean gridCreated;
 
-	public int cell_size = 4;
+	public int cell_size = 2;
 
 	public A_Star_2(Point3D start_point, Point3D end_point, ArrayList<Box> boxes, GUI gui) {
 		this.COLS = gui.getWidth()/cell_size;
