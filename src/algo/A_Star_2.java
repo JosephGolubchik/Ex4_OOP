@@ -35,11 +35,11 @@ public class A_Star_2 {
 
 	public boolean gridCreated;
 	public boolean didFirstCalc;
+	
+	public int cell_size;
 
-	public int cell_size = 2;
-	public int last_cell_size = cell_size;
-
-	public A_Star_2(Point3D start_point, Point3D end_point, ArrayList<Box> boxes, GUI gui) {
+	public A_Star_2(Point3D start_point, Point3D end_point, ArrayList<Box> boxes, GUI gui, int cell_size) {
+		this.cell_size = cell_size;
 		this.COLS = gui.getWidth()/cell_size;
 		this.ROWS = gui.getHeight()/cell_size;
 		this.boxes = boxes;
