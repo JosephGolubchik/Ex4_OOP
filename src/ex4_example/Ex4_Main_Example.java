@@ -37,7 +37,7 @@ public class Ex4_Main_Example {
 		
 
 		// 1) Create a "play" from a file (attached to Ex4)
-		String file_name = "data/Ex4_OOP_example3.csv";
+		String file_name = "data/Ex4_OOP_example5.csv";
 		Play play1 = new Play(file_name);
 
 		// 2) Set your ID's - of all the group members

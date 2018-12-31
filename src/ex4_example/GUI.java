@@ -101,7 +101,7 @@ public class GUI implements Runnable {
 			calcAngle();
 		if(keyManager.t) {
 			if(!fruits.isEmpty()) {
-				if(pixelDistance(player.getLocation(), fruits.get(0).getLocation()) > 15) {
+				if(pixelDistance(player.getLocation(), fruits.get(0).getLocation()) > 15 && !radiusInsideBox(player.getLocation(), 50)) {
 					calcPath();
 				}
 				calcAngle();
@@ -222,7 +222,7 @@ public class GUI implements Runnable {
 		if(fruits.size() > 0) {
 			Point3D player_loc = player.getLocation();
 			Point3D dest_loc = fruits.get(0).getLocation();
-			if(pixelDistance(player_loc, dest_loc) < 40 || radiusInsideBox(player_loc, 10)) {
+			if(pixelDistance(player_loc, dest_loc) < 40) {
 				star = new A_Star_2(player_loc, dest_loc, boxes, this, 2);
 			}
 			else {
