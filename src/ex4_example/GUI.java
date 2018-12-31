@@ -198,8 +198,20 @@ public class GUI implements Runnable {
 		Point3D player_loc = player.getLocation();
 		Point3D dest_loc = fruits.get(0).getLocation();
 		star = new A_Star_2(player_loc, dest_loc, boxes, this);
-		
-		star.algo();
+		if(star.path.size() == 0) {
+			star.algo();
+		}
+		else {
+			Point3D before_fruit = star.getPointBeforeFruit();
+			int radius = 0;
+			if((player_loc.ix() <= before_fruit.ix() - radius && player_loc.ix() <= before_fruit.ix() - radius) &&
+				(player_loc.iy() <= before_fruit.iy() - radius && player_loc.iy() <= before_fruit.ix() - radius)) {
+				star.last_cell_size = star.cell_size;
+				star.cell_size = 1;
+				star.algo();
+				star.cell_size = star.last_cell_size;
+			}
+		}
 	}
 	
 	public void drawPath(ArrayList<Point3D> path) {
@@ -307,6 +319,28 @@ public class GUI implements Runnable {
 			e.printStackTrace();
 		}
 	}
+	
+	public Point3D addMetersAzimuth(Point3D pix_point, double meters, double azimuth) {
+		Point3D gps = pixelsToPoint(pix_point);
+		double R = 6371;
+		azimuth = Math.toRadians(azimuth);
+		double km = meters/1000;
+			
+		double lat1 = Math.toRadians(gps.x());
+		double lon1 = Math.toRadians(gps.y());
+		
+		double lat2 = Math.asin( Math.sin(lat1)*Math.cos(km/R) +
+				Math.cos(lat1)*Math.sin(km/R)*Math.cos(azimuth));
+		
+		double lon2 = lon1 + Math.atan2(Math.sin(azimuth)*Math.sin(km/R)*Math.cos(lat1),
+				Math.cos(km/R)-Math.sin(lat1)*Math.sin(lat2));
+
+		lat2 = Math.toDegrees(lat2);
+		lon2 = Math.toDegrees(lon2);
+		Point3D new_gis = new Point3D(lat2, lon2);
+		
+		return pointToPixels(new_gis);
+	}
 
 	/**
 	 * Gets a point in latitude and longitude and returns a point in pixels on the image
@@ -360,6 +394,10 @@ public class GUI implements Runnable {
 
 	public ArrayList<Box> getBoxes() {
 		return boxes;
+	}
+	
+	public Player getPlayer() {
+		return player;
 	}
 
 }

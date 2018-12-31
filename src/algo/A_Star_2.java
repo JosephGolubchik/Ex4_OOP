@@ -35,7 +35,8 @@ public class A_Star_2 {
 
 	public boolean gridCreated;
 
-	public int cell_size = 2;
+	public int cell_size = 6;
+	public int last_cell_size = cell_size;
 
 	public A_Star_2(Point3D start_point, Point3D end_point, ArrayList<Box> boxes, GUI gui) {
 		this.COLS = gui.getWidth()/cell_size;
@@ -190,14 +191,32 @@ public class A_Star_2 {
 		}
 		done = true;
 	}
-
+	
+	public Point3D getPointBeforeFruit() {
+		return new Point3D(path.get(path.size()-2).x, path.get(path.size()-2).y);
+	}
+	
 	public ArrayList<Point3D> getPath(){
 		ArrayList<Point3D> points = new ArrayList<Point3D>();
 
 		Iterator<Cell> it = path.iterator();
 		while(it.hasNext()) {
 			Cell curr = it.next();
-			points.add(new Point3D(curr.x*cell_size, curr.y*cell_size, 0));
+//			if(curr != path.get(path.size()-2)) {
+				points.add(new Point3D(curr.x*cell_size, curr.y*cell_size, 0));
+//			}
+//			else {
+//				int temp_x = curr.x;
+//				int temp_y = curr.y;
+//				curr = it.next();
+//				while(!(temp_x == curr.x && temp_y == curr.y)) {
+//					Point3D next_point = gui.addMetersAzimuth(new Point3D(temp_x, temp_y), 300, gui.getPlayer().angle);
+//					points.add(new Point3D(temp_x, temp_y, 0));
+//					temp_x = next_point.ix();
+//					temp_y = next_point.iy();
+//				}
+//			}
+			
 		}
 
 		return points;
