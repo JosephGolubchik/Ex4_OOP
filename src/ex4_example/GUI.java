@@ -15,6 +15,7 @@ import entities.Fruit;
 import entities.Ghost;
 import entities.Packman;
 import entities.Player;
+import entities.Robot;
 import gfx.Assets;
 
 public class GUI implements Runnable {
@@ -190,14 +191,19 @@ public class GUI implements Runnable {
 	 */
 	public Point3D closestFruit() {
 		Fruit closest = fruits.get(0);
-		double minDistance = Double.POSITIVE_INFINITY;
+		double minTime = Double.POSITIVE_INFINITY;
 		Iterator<Fruit> it = fruits.iterator();
 		while(it.hasNext()) {
 			Fruit f = it.next();
-			A_Star_2 s0 = new A_Star_2(player.getLocation(), f.getLocation(),boxes,this,6);
-			if(s0.pathDistance() < minDistance) {
-				minDistance = s0.pathDistance();
-				closest = f;
+			double minTimeFromPac = Double.POSITIVE_INFINITY;
+			Iterator<Packman> pack_it = packmans.iterator();
+			while(pack_it.hasNext()) {
+				Packman pack = pack_it.next();
+				A_Star_2 s0 = new A_Star_2(player.getLocation(), f.getLocation(),boxes,this,6);
+				if(s0.pathDistance()/player.getSpeed() < minTime && s0.pathDistance()/player.getSpeed() < timePackmanToFruit(pack, f)) {
+					minTime = s0.pathDistance()/player.getSpeed();
+					closest = f;
+				}
 			}
 		}
 		return closest.getLocation();
@@ -329,7 +335,7 @@ public class GUI implements Runnable {
 				star = new A_Star_2(player_loc, dest_loc, boxes, this, 2);
 			}
 			else {
-				star = new A_Star_2(player_loc, dest_loc, boxes, this, 6);
+				star = new A_Star_2(player_loc, dest_loc, boxes, this, 7);
 			}
 
 			star.algo();
@@ -337,6 +343,17 @@ public class GUI implements Runnable {
 
 	}
 
+	public double timePlayerToFruit(Fruit fruit) {
+		A_Star_2 st = new A_Star_2(player.getLocation(), fruit.getLocation(), boxes, this, 6);
+		st.algo();
+		double distance = st.pathDistance();
+		return distance/player.getSpeed();
+	}
+	
+	public double timePackmanToFruit(Packman pac, Fruit fruit) {
+		return pixelDistance(pac.getLocation(), fruit.getLocation())/pac.getSpeed();
+	}
+	
 	/**
 	 * Finds the best starting point for the player: the fruit which as the most close fruits to it.
 	 * @return Location of the best starting point.

@@ -57,7 +57,7 @@ public class A_Star_2 {
 		double dx = Math.abs(c0.x - c1.x);
 		double dy = Math.abs(c0.y - c1.y);
 		double d = Math.sqrt(dx*dx + dy*dy);
-		//		double d = dx + dy;
+		if(c1.ghost) d = 1000;
 		return d;
 	}
 
@@ -117,11 +117,6 @@ public class A_Star_2 {
 
 //				System.out.println("Done!"); 
 				didFirstCalc = true;
-				try {
-					Thread.sleep(DELAY_AFTER_FINISH);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
 				done = true;
 				return;
 			}
@@ -169,13 +164,7 @@ public class A_Star_2 {
 						addPath(temp.prev);
 						temp = temp.prev;
 					}
-
-					try {
-						Thread.sleep(DELAY_BETWEEN_MOVE);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-
+					
 					Iterator<Cell> path_it = path.iterator();
 					while(path_it.hasNext()) {
 						Cell cell = path_it.next();
@@ -188,13 +177,9 @@ public class A_Star_2 {
 
 		System.out.println("No solution"); 
 		didFirstCalc = true;
-		try {
-			Thread.sleep(DELAY_AFTER_FINISH);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
 		done = true;
 	}
+
 	
 	public Point3D getPointBeforeFruit() {
 		return new Point3D(path.get(path.size()-2).x, path.get(path.size()-2).y);
@@ -288,6 +273,7 @@ public class A_Star_2 {
 		boolean closed;
 		boolean inPath;
 		boolean wall;
+		boolean ghost;
 		ArrayList<Cell> neighbours;
 		Cell prev;
 
@@ -301,6 +287,7 @@ public class A_Star_2 {
 			neighbours = new ArrayList<Cell>();
 			prev = null;
 			wall = false;
+			ghost = false;
 
 			if(boxes != null) {
 				Iterator<Box> box_it = boxes.iterator();
@@ -316,10 +303,10 @@ public class A_Star_2 {
 				Iterator<Ghost> ghost_it = gui.getGhosts().iterator();
 				while(ghost_it.hasNext()) {
 					Ghost ghost = ghost_it.next();
-					int margin = 1;
+					int margin = 30;
 					if( (x*cell_size >= ghost.getLocation().ix() - margin && x*cell_size <= ghost.getLocation().ix() + margin) &
 						(y*cell_size >= ghost.getLocation().iy() - margin && y*cell_size <= ghost.getLocation().iy() + margin) ) {
-						this.wall = true;
+						this.ghost = true;
 					}
 				}
 			}
