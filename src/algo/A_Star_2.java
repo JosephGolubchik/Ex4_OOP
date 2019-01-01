@@ -225,7 +225,7 @@ public class A_Star_2 {
 
 		return points;
 	}
-
+	
 	public double pathDistance() {
 		if(didFirstCalc) {
 			double distance = 0;
@@ -316,7 +316,7 @@ public class A_Star_2 {
 				Iterator<Ghost> ghost_it = gui.getGhosts().iterator();
 				while(ghost_it.hasNext()) {
 					Ghost ghost = ghost_it.next();
-					int margin = 5;
+					int margin = 1;
 					if( (x*cell_size >= ghost.getLocation().ix() - margin && x*cell_size <= ghost.getLocation().ix() + margin) &
 						(y*cell_size >= ghost.getLocation().iy() - margin && y*cell_size <= ghost.getLocation().iy() + margin) ) {
 						this.wall = true;

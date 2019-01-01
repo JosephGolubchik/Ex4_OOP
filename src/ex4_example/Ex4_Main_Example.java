@@ -37,13 +37,14 @@ public class Ex4_Main_Example {
 		
 
 		// 1) Create a "play" from a file (attached to Ex4)
-		String file_name = "data/Ex4_OOP_example5.csv";
+		String file_name = "data/Ex4_OOP_example3.csv";
 		Play play1 = new Play(file_name);
 
 		// 2) Set your ID's - of all the group members
 		play1.setIDs(209195353,2222,3333);
 
 		// 3)Get the GPS coordinates of the "arena"s
+		
 		String map_data = play1.getBoundingBox();
 //		System.out.println("Bounding Box info: "+map_data);
 
