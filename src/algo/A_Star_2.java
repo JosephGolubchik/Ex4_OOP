@@ -226,6 +226,22 @@ public class A_Star_2 {
 		return points;
 	}
 
+	public double pathDistance() {
+		if(didFirstCalc) {
+			double distance = 0;
+			Iterator<Cell> it0 = path.iterator();
+			Iterator<Cell> it1 = path.iterator();
+			it1.next();
+			while(it1.hasNext()) {
+				Cell curr = it0.next();
+				Cell next = it1.next();
+				distance += Math.sqrt(Math.abs(curr.x-next.x)*Math.abs(curr.x-next.x) + Math.abs(curr.y-next.y)*Math.abs(curr.y-next.y));
+			}
+			return distance;
+		}
+		return 0;
+	}
+	
 	private void addPath(Cell cell) {
 		if(cell != null) {
 			path.add(cell);

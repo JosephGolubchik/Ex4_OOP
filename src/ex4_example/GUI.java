@@ -51,6 +51,10 @@ public class GUI implements Runnable {
 	
 	private boolean acc = false;
 
+	private boolean playing = false;
+	
+	public Point3D startPoint = new Point3D(32.1040,35.2061);
+	
 	public GUI(Play play, Point3D start, Point3D end){
 		keyManager = new KeyManager();
 		mouseManager = new MouseManager();
@@ -70,6 +74,7 @@ public class GUI implements Runnable {
 		display = new Display("Packman", width, height);
 		display.getFrame().addKeyListener(keyManager);
 		display.getFrame().addMouseListener(mouseManager);
+		loadBoard(play);
 
 
 	}
@@ -84,6 +89,8 @@ public class GUI implements Runnable {
 		keyManager.tick();
 		loadBoard(play);
 		move();
+		if(playing)
+			playAlgo();
 	}
 
 	private void move() {
@@ -100,16 +107,20 @@ public class GUI implements Runnable {
 		if(keyManager.r)
 			calcAngle();
 		if(keyManager.t) {
-			if(!fruits.isEmpty()) {
-				if(pixelDistance(player.getLocation(), closestFruit()) > 10 && !radiusInsideBox(player.getLocation(), 10)) {
-					calcPath();
-				}
-				calcAngle();
-			}
-			
+			if(playing) playing = false;
+			else playing = true;
 		}
 	}
 
+	public void playAlgo() {
+		if(!fruits.isEmpty()) {
+			if(pixelDistance(player.getLocation(), closestFruit()) > 5 && !radiusInsideBox(player.getLocation(), 10)) {
+				calcPath();
+			}
+			calcAngle();
+		}
+	}
+	
 	public double pixelDistance(Point3D p0, Point3D p1) {
 		int dx = Math.abs(p0.ix() - p1.ix());
 		int dy = Math.abs(p0.iy() - p1.iy());
@@ -134,7 +145,6 @@ public class GUI implements Runnable {
 				dest_id++;
 			}
 			player.angle = azimuth(player_gis, dest_gis);
-			System.out.println("angle: "+player.angle); 
 			play.rotate(player.angle);
 		}
 		else {
@@ -146,10 +156,13 @@ public class GUI implements Runnable {
 	
 	public Point3D closestFruit() {
 		Fruit closest = fruits.get(0);
+		double minDistance = Double.POSITIVE_INFINITY;
 		Iterator<Fruit> it = fruits.iterator();
 		while(it.hasNext()) {
 			Fruit f = it.next();
-			if(pixelDistance(player.getLocation(), f.getLocation()) < pixelDistance(player.getLocation(), closest.getLocation())) {
+			A_Star_2 s0 = new A_Star_2(player.getLocation(), f.getLocation(),boxes,this,6);
+			if(s0.pathDistance() < minDistance) {
+				minDistance = s0.pathDistance();
 				closest = f;
 			}
 		}
@@ -181,9 +194,9 @@ public class GUI implements Runnable {
 		g.drawImage(Assets.map, 0, 0, null);
 		drawBoard(player, packmans, ghosts, fruits, boxes);
 		
-		g.setColor(Color.red);
-		if(!fruits.isEmpty())
-			g.drawLine(player.getLocation().ix(), player.getLocation().iy(), closestFruit().ix(), closestFruit().iy());
+//		g.setColor(Color.red);
+//		if(!fruits.isEmpty())
+//			g.drawLine(player.getLocation().ix(), player.getLocation().iy(), closestFruit().ix(), closestFruit().iy());
 		
 		if(star != null) {
 			ArrayList<Point3D> path = star.getPath();
@@ -235,7 +248,7 @@ public class GUI implements Runnable {
 		if(fruits.size() > 0) {
 			Point3D player_loc = player.getLocation();
 			Point3D dest_loc = closestFruit();
-			if(pixelDistance(player_loc, dest_loc) < 20) {
+			if(pixelDistance(player_loc, dest_loc) < 30) {
 				star = new A_Star_2(player_loc, dest_loc, boxes, this, 2);
 			}
 			else {
@@ -245,6 +258,27 @@ public class GUI implements Runnable {
 			star.algo();
 		}
 		
+	}
+	
+	public Point3D bestStartPoint() {
+		int minAvgDist = Integer.MAX_VALUE;
+		Point3D bestStart = fruits.get(0).getLocation();
+		Iterator<Fruit> it = fruits.iterator();
+		while(it.hasNext()) {
+			int distSum = 0;
+			Fruit f = it.next();
+			Iterator<Fruit> it2 = fruits.iterator();
+			while(it2.hasNext()) {
+				Fruit f2 = it2.next();
+				distSum += pixelDistance(f.getLocation(), f2.getLocation());
+			}
+			int avgDist = distSum/fruits.size()-1;
+			if(avgDist < minAvgDist) {
+				minAvgDist = avgDist;
+				bestStart = f.getLocation();
+			}
+		}
+		return bestStart;
 	}
 	
 	public boolean radiusInsideBox(Point3D position, int radius) {

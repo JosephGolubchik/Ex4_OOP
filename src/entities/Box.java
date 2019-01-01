@@ -23,7 +23,7 @@ public class Box{
 	}
 	
 	public boolean isInside(int x, int y) {
-		int margin = 0;
+		int margin = 3;
 		if( (x >= top_left_pix_point.ix() - margin && x <= bottom_right_pix_point.ix() + margin) &
 			(y >= top_left_pix_point.iy() - margin && y <= bottom_right_pix_point.iy() + margin) ) {
 			return true;
