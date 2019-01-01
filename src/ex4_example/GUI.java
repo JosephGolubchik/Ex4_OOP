@@ -19,42 +19,42 @@ import gfx.Assets;
 
 public class GUI implements Runnable {
 
+	//Display
 	private Display display;
 	private int width, height;
-
-	private boolean running = false;
-	private Thread thread;
-
 	private BufferStrategy bs;
 	private Graphics g;
 
+	//Game
+	private A_Star_2 star;
+	private Thread thread;
 	private Play play;
-
 	private Point3D start;
 	private Point3D end;
-
 	private Player player;
 	private ArrayList<Packman> packmans;
 	private ArrayList<Ghost> ghosts;
-
 	private ArrayList<Fruit> fruits;
 	private ArrayList<Box> boxes;
-
 	private Point3D dest;
 	private int dest_id = 0;
-
+	public Point3D playerStart;
+	
 	//Input
 	private KeyManager keyManager;
 	private MouseManager mouseManager;
 
-	private A_Star_2 star;
-
-	private boolean acc = false;
-
+	//Flags
+	private boolean running = false;
 	private boolean playing = false;
 
-	public Point3D startPoint = new Point3D(32.1040,35.2061);
-
+	
+	/**
+	 * Constructor
+	 * @param play Object that is responsible for advancing the game and returning information about it.
+	 * @param start Top left GPS coordinate of the map.
+	 * @param end Bottom right GPS coordinate of the map.
+	 */
 	public GUI(Play play, Point3D start, Point3D end){
 		keyManager = new KeyManager();
 		mouseManager = new MouseManager();
@@ -66,8 +66,15 @@ public class GUI implements Runnable {
 
 	}
 
+	/**
+	 * Initialize the GUI after the thread has been started:
+	 * - Load the needed images.
+	 * - Set the pixel width and height of the display to those of the map image.
+	 * - Create a display object which will create our GUI window.
+	 * - Add mouse and keyboard listeners to our window.
+	 * - Load the initial game board, we get the board info as a string from our play object.
+	 */
 	private void init(){
-
 		Assets.loadImages();
 		width = Assets.map.getWidth();
 		height =  Assets.map.getHeight();
@@ -79,12 +86,14 @@ public class GUI implements Runnable {
 
 	}
 
-	public void setWidth(int width) {
-		this.width = width;}
-
-	public void setHeight(int height) {
-		this.height = height;}
-
+	/**
+	 * Called every time the window is refreshed:
+	 * - Calls the tick function of the keyboard listener.
+	 * - Loads the updated game board.
+	 * - Calls a functin to recalculate the players path.
+	 * - Move function checks which keys are pressed and acts accordingly.
+	 * - Calls the game to continue if the game has been started.
+	 */
 	private void tick(){
 		keyManager.tick();
 		loadBoard(play);
@@ -94,6 +103,13 @@ public class GUI implements Runnable {
 			playAlgo();
 	}
 
+	/**
+	 * checks which keys are pressed and acts accordingly:
+	 * - Moves the player up, right, down or left while the corresponding 'aswd' key is pressed.
+	 * - Recalculates players optimal path while 'e' is pressed.
+	 * - Moves the player according to the latest path without recalculating while 'r' is pressed.
+	 * - Moves the player according to the optimal apth and recalculates when needed after 't' is pressed once, stops if 't' is pressed again.
+	 */
 	private void move() {
 		if(keyManager.down)
 			play.rotate(0);
@@ -113,6 +129,13 @@ public class GUI implements Runnable {
 		}
 	}
 
+	/**
+	 * Call next move in the game:
+	 * - If all fruits have been eaten, do nothing.
+	 * - If player is very close to his destination fruit, stop recalculating the path until it has been eaten, to prevent going in circles around the fruit.
+	 * - If the player is close to a box corner, recalculate the path to prevent the player from getting stuck in a wall.
+	 * - Calculate the angle the player needs to move in and move him using calcAngle() function.
+	 */
 	public void playAlgo() {
 		if(!fruits.isEmpty()) {
 			if(pixelDistance(player.getLocation(), closestFruit()) > 5 && !radiusInsideBox(player.getLocation(), 10)) {
@@ -122,39 +145,49 @@ public class GUI implements Runnable {
 		}
 	}
 
+	/**
+	 * Distance in pixels between two points using the pythagorean theorem.
+	 * @param p0 First point.
+	 * @param p1 Second point.
+	 * @return distance in pixels between the two points.
+	 */
 	public double pixelDistance(Point3D p0, Point3D p1) {
 		int dx = Math.abs(p0.ix() - p1.ix());
 		int dy = Math.abs(p0.iy() - p1.iy());
 		return Math.sqrt((dx*dx) + (dy*dy));
 	}
 
+	/**
+	 * Calculates the angle the player needs to move in next:
+	 * - If the player reached the last point of his current path, calculate a new path and reset dest_id.
+	 * - Destination is decided using dest_id as an index.
+	 * - If the player is very close to the next point in his path, increment dest_id.
+	 * - The angle the player needs to go in is the azimuth between the players location and the next point's location.
+	 */
 	private void calcAngle() {
 		ArrayList<Point3D> path = star.getPath();
 		if(path.size() - dest_id - 1 > 0) {
 			dest = path.get(path.size() - dest_id - 1);
 			Point3D dest_gis = pixelsToPoint(dest);
 			Point3D player_gis = pixelsToPoint(player.getLocation());
-			int radius = 2;
-			int radius2 = 5;
-			//			if((player.getLocation().ix() >= path.get(1).ix()-radius && player.getLocation().ix() <= path.get(1).ix()+radius) &&
-			//				(player.getLocation().iy() >= path.get(1).iy()-radius && player.getLocation().iy() <= path.get(1).iy()+radius)) {
-			//				acc = true;
-			//				calcPath();
-			//			}
-			if((player.getLocation().ix() >= dest.ix()-radius2 && player.getLocation().ix() <= dest.ix()+radius2) &&
-					(player.getLocation().iy() >= dest.iy()-radius2 && player.getLocation().iy() <= dest.iy()+radius2)) {
+			int radius = 5;
+			if((player.getLocation().ix() >= dest.ix()-radius && player.getLocation().ix() <= dest.ix()+radius) &&
+					(player.getLocation().iy() >= dest.iy()-radius && player.getLocation().iy() <= dest.iy()+radius)) {
 				dest_id++;
 			}
 			player.angle = azimuth(player_gis, dest_gis);
 			play.rotate(player.angle);
 		}
 		else {
-			acc = false;
 			dest_id = 0;
 			calcPath();	
 		}
 	}
 
+	/**
+	 * Returns the fruit that the player can get to the fastest.
+	 * @return The location of the closest fruit.
+	 */
 	public Point3D closestFruit() {
 		Fruit closest = fruits.get(0);
 		double minDistance = Double.POSITIVE_INFINITY;
@@ -170,6 +203,10 @@ public class GUI implements Runnable {
 		return closest.getLocation();
 	}
 
+	/**
+	 * Returns the ghost that is closest to the player.
+	 * @return The location of the closest ghost.
+	 */
 	public Point3D closestGhost() {
 		if(ghosts.size() == 0) return new Point3D(0,0);
 		Ghost closest = ghosts.get(0);
@@ -185,6 +222,12 @@ public class GUI implements Runnable {
 		return closest.getLocation();
 	}
 
+	/**
+	 * Azimuth between two points.
+	 * @param gps0 First point.
+	 * @param gps1 Second point.
+	 * @return The azimuth between the two points in degrees.
+	 */
 	public double azimuth(Point3D gps0, Point3D gps1) {
 		int radius = 6371000;
 		double lat0 = Math.toRadians(gps0.x()); double lon0 = Math.toRadians(gps0.y());
@@ -196,6 +239,16 @@ public class GUI implements Runnable {
 		return Math.toDegrees(azimuth);
 	}
 
+	/**
+	 * Main drawing function:
+	 * - Sets up 3 buffers to be used for drawing on the canvas.
+	 * - Gets the canvas's graphics object which we will use to draw on the canvas.
+	 * - Clears the screen each time before drawing.
+	 * - Draws the map image.
+	 * - Draws the game entities.
+	 * - Draws a straight line from the player to it's destination fruit in red.
+	 * - Draws the players current path in white.
+	 */
 	private void render(){
 		bs = display.getCanvas().getBufferStrategy();
 		if(bs == null){
@@ -224,6 +277,10 @@ public class GUI implements Runnable {
 		g.dispose();
 	}
 
+	/**
+	 * Called when the GUI thread is started.
+	 * Makes sure the graphics are drawn at 60 frames per second.
+	 */
 	public void run(){
 
 		init();
@@ -241,25 +298,29 @@ public class GUI implements Runnable {
 			delta += (now - lastTime) / timePerTick;
 			timer += now - lastTime;
 			lastTime = now;
-
 			if(delta >= 1){
 				tick();
 				render();
 				ticks++;
 				delta--;
 			}
-
 			if(timer >= 1000000000){
 				//				System.out.println("FPS: " + ticks);
 				ticks = 0;
 				timer = 0;
 			}
 		}
-
 		stop();
-
 	}
 
+	/**
+	 * Calls the A* algorithm to calculate the shortest path from the player to his destination:
+	 * - If there are no fruits left do nothing.
+	 * - Sends the player to the fruit it is closest to.
+	 * - If the player is very close to the fruit, calculate a very accurate path to the fruit in order to not miss the specific pixel.
+	 * - Also do the accurate calculation if the player is close to a ghost and if the player is close to a box corner.
+	 * - Otherwise calculate a less accurate but good enough path, this takes significantly less time to calculate.
+	 */
 	public void calcPath() {
 		if(fruits.size() > 0) {
 			Point3D player_loc = player.getLocation();
@@ -276,6 +337,10 @@ public class GUI implements Runnable {
 
 	}
 
+	/**
+	 * Finds the best starting point for the player: the fruit which as the most close fruits to it.
+	 * @return Location of the best starting point.
+	 */
 	public Point3D bestStartPoint() {
 		int minAvgDist = Integer.MAX_VALUE;
 		Point3D bestStart = fruits.get(0).getLocation();
@@ -297,6 +362,12 @@ public class GUI implements Runnable {
 		return bestStart;
 	}
 
+	/**
+	 * Checks if the player is within a square radius of a box corner.
+	 * @param position Player's position.
+	 * @param radius The radius.
+	 * @return True or false.
+	 */
 	public boolean radiusNearBoxCorner(Point3D position, int radius) {
 		Iterator<Box> box_it = boxes.iterator();
 		while(box_it.hasNext()) {
@@ -320,6 +391,12 @@ public class GUI implements Runnable {
 		return false;
 	}
 
+	/**
+	 * Checks if the player is within a square radius of any point of a box.
+	 * @param position Players position.
+	 * @param radius The radius.
+	 * @return True or false.
+	 */
 	public boolean radiusInsideBox(Point3D position, int radius) {
 		Iterator<Box> box_it = boxes.iterator();
 		while(box_it.hasNext()) {
@@ -335,6 +412,10 @@ public class GUI implements Runnable {
 		return false;
 	}
 
+	/**
+	 * Draws the current path.
+	 * @param path
+	 */
 	public void drawPath(ArrayList<Point3D> path) {
 		Iterator<Point3D> it = path.iterator();
 		g.setColor(Color.white);
@@ -342,9 +423,12 @@ public class GUI implements Runnable {
 			Point3D point = it.next();
 			g.fillRect(point.ix(), point.iy(), 2, 2);
 		}
-
 	}
 
+	/**
+	 * Reads the game board information string we get from the play object and creates the packmans, ghosts, fruits, boxes and the player.
+	 * @param play
+	 */
 	private void loadBoard(Play play) {
 		ArrayList<String> board = play.getBoard();
 		Iterator<String> it = board.iterator();
@@ -394,6 +478,15 @@ public class GUI implements Runnable {
 			}
 		}
 	}
+	
+	/**
+	 * Draws the packmans, ghosts, fruits, boxes and the player.
+	 * @param player
+	 * @param packmans
+	 * @param ghosts
+	 * @param fruits
+	 * @param boxes
+	 */
 	private void drawBoard(Player player, ArrayList<Packman> packmans, ArrayList<Ghost> ghosts, ArrayList<Fruit> fruits, ArrayList<Box> boxes) {
 		player.render(g);
 		Iterator<Packman> pack_it = packmans.iterator();
@@ -410,18 +503,9 @@ public class GUI implements Runnable {
 			box_it.next().render(g);
 	}
 
-	public KeyManager getKeyManager() {
-		return keyManager;
-	}
-
-	public int getWidth() {
-		return width;
-	}
-
-	public int getHeight() {
-		return height;
-	}
-
+	/**
+	 * Function that starts the thread.
+	 */
 	public synchronized void start(){
 		if(running)
 			return;
@@ -430,6 +514,9 @@ public class GUI implements Runnable {
 		thread.start();
 	}
 
+	/**
+	 * Function that stops the thread.
+	 */
 	public synchronized void stop(){
 		if(!running)
 			return;
@@ -441,6 +528,13 @@ public class GUI implements Runnable {
 		}
 	}
 
+	/**
+	 * Returns a point some amount of meters off in a given azimuth from a given point.
+	 * @param pix_point Given point in pixels.
+	 * @param meters Amount of meters to move.
+	 * @param azimuth The azimuth.
+	 * @return A new point in pixels some amount of meters away from the given pixel point.
+	 */
 	public Point3D addMetersAzimuth(Point3D pix_point, double meters, double azimuth) {
 		Point3D gps = pixelsToPoint(pix_point);
 		double R = 6371;
@@ -501,6 +595,8 @@ public class GUI implements Runnable {
 		return new Point3D(newLat, newLong);
 	}
 
+	//Getters
+	
 	public ArrayList<Packman> getPackmans() {
 		return packmans;
 	}
@@ -519,6 +615,18 @@ public class GUI implements Runnable {
 
 	public Player getPlayer() {
 		return player;
+	}
+	
+	public KeyManager getKeyManager() {
+		return keyManager;
+	}
+
+	public int getWidth() {
+		return width;
+	}
+
+	public int getHeight() {
+		return height;
 	}
 
 }
