@@ -37,7 +37,7 @@ public class Ex4_Main_Example {
 		
 
 		// 1) Create a "play" from a file (attached to Ex4)
-		String file_name = "data/Ex4_OOP_example3.csv";
+		String file_name = "data/Ex4_OOP_example5.csv";
 		Play play1 = new Play(file_name);
 
 		// 2) Set your ID's - of all the group members
@@ -64,12 +64,12 @@ public class Ex4_Main_Example {
 //		System.out.println("Init Player Location should be set using the bounding box info");
 
 		// 5) Set the "player" init location - should be a valid location
-//		while(gui.getFruits() == null || gui.getFruits().size() == 0) {
-//		}
-//		Point3D initLocation = gui.pixelsToPoint(gui.bestStartPoint());
-//		System.out.println(initLocation); 
-//		play1.setInitLocation(initLocation.ix(), initLocation.iy());
-		play1.setInitLocation(32.1046,35.2092198);
+		while(gui.getFruits() == null || gui.getFruits().size() == 0) {
+		}
+		Point3D initLocation = gui.pixelsToPoint(gui.bestStartPoint());
+		System.out.println(initLocation); 
+		play1.setInitLocation(initLocation.x()+0.00006, initLocation.y()+0.00006);
+//		play1.setInitLocation(32.1046,35.2092198);
 
 		// 6) Start the "server"
 		play1.start(); // default max time is 100 seconds (1000*100 ms).

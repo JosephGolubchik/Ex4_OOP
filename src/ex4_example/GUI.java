@@ -88,6 +88,7 @@ public class GUI implements Runnable {
 	private void tick(){
 		keyManager.tick();
 		loadBoard(play);
+		calcPath();
 		move();
 		if(playing)
 			playAlgo();
@@ -194,9 +195,9 @@ public class GUI implements Runnable {
 		g.drawImage(Assets.map, 0, 0, null);
 		drawBoard(player, packmans, ghosts, fruits, boxes);
 		
-//		g.setColor(Color.red);
-//		if(!fruits.isEmpty())
-//			g.drawLine(player.getLocation().ix(), player.getLocation().iy(), closestFruit().ix(), closestFruit().iy());
+		g.setColor(Color.red);
+		if(!fruits.isEmpty())
+			g.drawLine(player.getLocation().ix(), player.getLocation().iy(), closestFruit().ix(), closestFruit().iy());
 		
 		if(star != null) {
 			ArrayList<Point3D> path = star.getPath();

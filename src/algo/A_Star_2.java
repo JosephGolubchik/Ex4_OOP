@@ -115,7 +115,7 @@ public class A_Star_2 {
 					temp = temp.prev;
 				}
 
-				System.out.println("Done!"); 
+//				System.out.println("Done!"); 
 				didFirstCalc = true;
 				try {
 					Thread.sleep(DELAY_AFTER_FINISH);
