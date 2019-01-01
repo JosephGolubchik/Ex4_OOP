@@ -97,7 +97,6 @@ public class GUI implements Runnable {
 	private void tick(){
 		keyManager.tick();
 		loadBoard(play);
-		calcPath();
 		move();
 		if(playing)
 			playAlgo();
@@ -124,6 +123,7 @@ public class GUI implements Runnable {
 		if(keyManager.r)
 			calcAngle();
 		if(keyManager.t) {
+			calcPath();
 			if(playing) playing = false;
 			else playing = true;
 		}
@@ -138,7 +138,7 @@ public class GUI implements Runnable {
 	 */
 	public void playAlgo() {
 		if(!fruits.isEmpty()) {
-			if(pixelDistance(player.getLocation(), closestFruit()) > 5 && !radiusInsideBox(player.getLocation(), 10)) {
+			if(pixelDistance(player.getLocation(), closestFruit()) > 3 && !radiusInsideBox(player.getLocation(), 10)) {
 				calcPath();
 			}
 			calcAngle();

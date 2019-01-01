@@ -70,7 +70,7 @@ public class Ex4_Main_Example {
 		Point3D initLocation = gui.pixelsToPoint(gui.bestStartPoint());
 		System.out.println(initLocation); 
 		play1.setInitLocation(initLocation.x()+0.00006, initLocation.y()+0.00006);
-//		play1.setInitLocation(32.1046,35.2092198);
+//		play1.setInitLocation(32.1049345576324,35.209071674110255);
 
 		// 6) Start the "server"
 		play1.start(); // default max time is 100 seconds (1000*100 ms).
