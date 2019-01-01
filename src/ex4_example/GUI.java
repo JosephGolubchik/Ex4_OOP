@@ -40,7 +40,7 @@ public class GUI implements Runnable {
 	private Point3D dest;
 	private int dest_id = 0;
 	public Point3D playerStart;
-	
+
 	//Input
 	private KeyManager keyManager;
 	private MouseManager mouseManager;
@@ -49,7 +49,7 @@ public class GUI implements Runnable {
 	private boolean running = false;
 	private boolean playing = false;
 
-	
+
 	/**
 	 * Constructor
 	 * @param play Object that is responsible for advancing the game and returning information about it.
@@ -139,6 +139,10 @@ public class GUI implements Runnable {
 	 */
 	public void playAlgo() {
 		if(!fruits.isEmpty()) {
+			if(pixelDistance(player.getLocation(), closestGhost()) < 50) {
+				calcPath();
+				escape();
+			}
 			if(pixelDistance(player.getLocation(), closestFruit()) > 3 && !radiusInsideBox(player.getLocation(), 10)) {
 				calcPath();
 			}
@@ -331,7 +335,7 @@ public class GUI implements Runnable {
 		if(fruits.size() > 0) {
 			Point3D player_loc = player.getLocation();
 			Point3D dest_loc = closestFruit();
-			if(pixelDistance(player_loc, dest_loc) < 30 || pixelDistance(player_loc, closestGhost()) < 40 || radiusNearBoxCorner(player.getLocation(), 10)) {
+			if(pixelDistance(player_loc, dest_loc) < 30 || radiusNearBoxCorner(player.getLocation(), 10)) {
 				star = new A_Star_2(player_loc, dest_loc, boxes, this, 2);
 			}
 			else {
@@ -343,17 +347,24 @@ public class GUI implements Runnable {
 
 	}
 
+	public void escape() {
+		Point3D closest = closestGhost();
+		double ghostAngle = azimuth(closest, player.getLocation());
+		play.rotate(ghostAngle+100);
+
+	}
+
 	public double timePlayerToFruit(Fruit fruit) {
 		A_Star_2 st = new A_Star_2(player.getLocation(), fruit.getLocation(), boxes, this, 6);
 		st.algo();
 		double distance = st.pathDistance();
 		return distance/player.getSpeed();
 	}
-	
+
 	public double timePackmanToFruit(Packman pac, Fruit fruit) {
 		return pixelDistance(pac.getLocation(), fruit.getLocation())/pac.getSpeed();
 	}
-	
+
 	/**
 	 * Finds the best starting point for the player: the fruit which as the most close fruits to it.
 	 * @return Location of the best starting point.
@@ -495,7 +506,7 @@ public class GUI implements Runnable {
 			}
 		}
 	}
-	
+
 	/**
 	 * Draws the packmans, ghosts, fruits, boxes and the player.
 	 * @param player
@@ -613,7 +624,7 @@ public class GUI implements Runnable {
 	}
 
 	//Getters
-	
+
 	public ArrayList<Packman> getPackmans() {
 		return packmans;
 	}
@@ -633,7 +644,7 @@ public class GUI implements Runnable {
 	public Player getPlayer() {
 		return player;
 	}
-	
+
 	public KeyManager getKeyManager() {
 		return keyManager;
 	}

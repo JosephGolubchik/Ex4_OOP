@@ -129,7 +129,7 @@ public class A_Star_2 {
 			while(it.hasNext()) {
 				Cell neigbour = it.next();
 				double tempG;
-				if(!closedSet.contains(neigbour) && !neigbour.wall) {
+				if(!closedSet.contains(neigbour) && !neigbour.wall && !neigbour.ghost) {
 					if( (neigbour.x == curr_cell.x+1 && neigbour.y == curr_cell.y+1) ||
 							(neigbour.x == curr_cell.x-1 && neigbour.y == curr_cell.y+1) ||
 							(neigbour.x == curr_cell.x+1 && neigbour.y == curr_cell.y-1) ||
@@ -191,20 +191,7 @@ public class A_Star_2 {
 		Iterator<Cell> it = path.iterator();
 		while(it.hasNext()) {
 			Cell curr = it.next();
-//			if(curr != path.get(path.size()-2)) {
-				points.add(new Point3D(curr.x*cell_size, curr.y*cell_size, 0));
-//			}
-//			else {
-//				int temp_x = curr.x;
-//				int temp_y = curr.y;
-//				curr = it.next();
-//				while(!(temp_x == curr.x && temp_y == curr.y)) {
-//					Point3D next_point = gui.addMetersAzimuth(new Point3D(temp_x, temp_y), 300, gui.getPlayer().angle);
-//					points.add(new Point3D(temp_x, temp_y, 0));
-//					temp_x = next_point.ix();
-//					temp_y = next_point.iy();
-//				}
-//			}
+			points.add(new Point3D(curr.x*cell_size, curr.y*cell_size, 0));
 			
 		}
 
