@@ -300,7 +300,7 @@ public class A_Star_2 {
 				Iterator<Ghost> ghost_it = gui.getGhosts().iterator();
 				while(ghost_it.hasNext()) {
 					Ghost ghost = ghost_it.next();
-					int margin = 30;
+					int margin = 5;
 					if( (x*cell_size >= ghost.getLocation().ix() - margin && x*cell_size <= ghost.getLocation().ix() + margin) &
 						(y*cell_size >= ghost.getLocation().iy() - margin && y*cell_size <= ghost.getLocation().iy() + margin) ) {
 						this.wall = true;

@@ -101,7 +101,7 @@ public class GUI implements Runnable {
 			calcAngle();
 		if(keyManager.t) {
 			if(!fruits.isEmpty()) {
-				if(pixelDistance(player.getLocation(), fruits.get(0).getLocation()) > 15 && !radiusInsideBox(player.getLocation(), 50)) {
+				if(pixelDistance(player.getLocation(), closestFruit()) > 10 && !radiusInsideBox(player.getLocation(), 10)) {
 					calcPath();
 				}
 				calcAngle();
@@ -124,16 +124,17 @@ public class GUI implements Runnable {
 			Point3D player_gis = pixelsToPoint(player.getLocation());
 			int radius = 2;
 			int radius2 = 5;
-			if((player.getLocation().ix() >= path.get(1).ix()-radius && player.getLocation().ix() <= path.get(1).ix()+radius) &&
-				(player.getLocation().iy() >= path.get(1).iy()-radius && player.getLocation().iy() <= path.get(1).iy()+radius)) {
-				acc = true;
-				calcPath();
-			}
-			else if((player.getLocation().ix() >= dest.ix()-radius2 && player.getLocation().ix() <= dest.ix()+radius2) &&
+//			if((player.getLocation().ix() >= path.get(1).ix()-radius && player.getLocation().ix() <= path.get(1).ix()+radius) &&
+//				(player.getLocation().iy() >= path.get(1).iy()-radius && player.getLocation().iy() <= path.get(1).iy()+radius)) {
+//				acc = true;
+//				calcPath();
+//			}
+			if((player.getLocation().ix() >= dest.ix()-radius2 && player.getLocation().ix() <= dest.ix()+radius2) &&
 			  (player.getLocation().iy() >= dest.iy()-radius2 && player.getLocation().iy() <= dest.iy()+radius2)) {
 				dest_id++;
 			}
 			player.angle = azimuth(player_gis, dest_gis);
+			System.out.println("angle: "+player.angle); 
 			play.rotate(player.angle);
 		}
 		else {
@@ -141,6 +142,18 @@ public class GUI implements Runnable {
 			dest_id = 0;
 			calcPath();	
 		}
+	}
+	
+	public Point3D closestFruit() {
+		Fruit closest = fruits.get(0);
+		Iterator<Fruit> it = fruits.iterator();
+		while(it.hasNext()) {
+			Fruit f = it.next();
+			if(pixelDistance(player.getLocation(), f.getLocation()) < pixelDistance(player.getLocation(), closest.getLocation())) {
+				closest = f;
+			}
+		}
+		return closest.getLocation();
 	}
 	
 	public double azimuth(Point3D gps0, Point3D gps1) {
@@ -170,7 +183,7 @@ public class GUI implements Runnable {
 		
 		g.setColor(Color.red);
 		if(!fruits.isEmpty())
-			g.drawLine(player.getLocation().ix(), player.getLocation().iy(), fruits.get(0).getLocation().ix(), fruits.get(0).getLocation().iy());
+			g.drawLine(player.getLocation().ix(), player.getLocation().iy(), closestFruit().ix(), closestFruit().iy());
 		
 		if(star != null) {
 			ArrayList<Point3D> path = star.getPath();
@@ -221,8 +234,8 @@ public class GUI implements Runnable {
 	public void calcPath() {
 		if(fruits.size() > 0) {
 			Point3D player_loc = player.getLocation();
-			Point3D dest_loc = fruits.get(0).getLocation();
-			if(pixelDistance(player_loc, dest_loc) < 40) {
+			Point3D dest_loc = closestFruit();
+			if(pixelDistance(player_loc, dest_loc) < 20) {
 				star = new A_Star_2(player_loc, dest_loc, boxes, this, 2);
 			}
 			else {
