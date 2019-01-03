@@ -37,7 +37,7 @@ public class Ex4_Main_Example {
 		
 
 		// 1) Create a "play" from a file (attached to Ex4)
-		String file_name = "data/Ex4_OOP_example5.csv";
+		String file_name = "data/Ex4_OOP_example1.csv";
 		Play play1 = new Play(file_name);
 
 		// 2) Set your ID's - of all the group members
@@ -52,7 +52,7 @@ public class Ex4_Main_Example {
 		Point3D start = new Point3D(Double.parseDouble(words[2]), Double.parseDouble(words[3]));
 		Point3D end = new Point3D(Double.parseDouble(words[5]), Double.parseDouble(words[6]));
 		
-		GUI gui = new GUI(play1, start, end);
+		GUI gui = new GUI();
 		gui.start();
 		
 		

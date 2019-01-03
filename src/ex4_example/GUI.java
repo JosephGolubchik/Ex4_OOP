@@ -1,9 +1,18 @@
 package ex4_example;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferStrategy;
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
+
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JMenuBar;
+import javax.swing.filechooser.FileSystemView;
 
 import Coords.Cords;
 import Coords.LatLonAlt;
@@ -40,6 +49,12 @@ public class GUI implements Runnable {
 	private Point3D dest;
 	private int dest_id = 0;
 	public Point3D playerStart;
+	
+	private double total_time;
+	private double time_left;
+	private double killed_by_ghost;
+	private double score;
+	private double out_of_box;
 
 	//Input
 	private KeyManager keyManager;
@@ -48,6 +63,8 @@ public class GUI implements Runnable {
 	//Flags
 	private boolean running = false;
 	private boolean playing = false;
+	private boolean firstLoaded = false;
+	private boolean didFirstPath = false;
 
 
 	/**
@@ -56,12 +73,9 @@ public class GUI implements Runnable {
 	 * @param start Top left GPS coordinate of the map.
 	 * @param end Bottom right GPS coordinate of the map.
 	 */
-	public GUI(Play play, Point3D start, Point3D end){
+	public GUI(){
 		keyManager = new KeyManager();
 		mouseManager = new MouseManager();
-		this.play = play;
-		this.start = start;
-		this.end = end;
 		player = new Player(0, new Point3D(0,0,0), 0, 0);
 		dest = new Point3D(0,0);
 
@@ -82,7 +96,46 @@ public class GUI implements Runnable {
 		display = new Display("Packman", width, height);
 		display.getFrame().addKeyListener(keyManager);
 		display.getFrame().addMouseListener(mouseManager);
-		loadBoard(play);
+		
+		JMenuBar menubar = new JMenuBar();
+		JButton openBtn = new JButton("Open");
+		JButton runBtn = new JButton("Run");
+		
+		openBtn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				playing = false;
+				JFileChooser jfc = new JFileChooser("data");
+				int returnValue = jfc.showOpenDialog(null);
+				if (returnValue == JFileChooser.APPROVE_OPTION) {
+					File selectedFile = jfc.getSelectedFile();
+					play = new Play(selectedFile.getAbsolutePath());
+					String map_data = play.getBoundingBox();
+					String[] words = map_data.split(",");
+					start = new Point3D(Double.parseDouble(words[2]), Double.parseDouble(words[3]));
+					end = new Point3D(Double.parseDouble(words[5]), Double.parseDouble(words[6]));
+					loadBoard(play);
+					play.setIDs(209195353,2222,3333);
+					Point3D initLocation = pixelsToPoint(bestStartPoint());
+					play.setInitLocation(initLocation.x(), initLocation.y());
+					loadBoard(play);
+					play.start();
+					firstLoaded = true;
+					didFirstPath = false;
+				}
+			}         
+		});  
+		
+		runBtn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				playing = true;
+			}         
+		});  
+		
+		menubar.add(openBtn);
+		menubar.add(runBtn);
+		display.getFrame().setJMenuBar(menubar);
 
 
 	}
@@ -97,10 +150,12 @@ public class GUI implements Runnable {
 	 */
 	private void tick(){
 		keyManager.tick();
-		loadBoard(play);
 		move();
-		if(playing)
+		if(playing) {
+			loadBoard(play);
 			playAlgo();
+			updateStats();
+		}
 	}
 
 	/**
@@ -124,9 +179,8 @@ public class GUI implements Runnable {
 		if(keyManager.r)
 			calcAngle();
 		if(keyManager.t) {
-			calcPath();
-			if(playing) playing = false;
-			else playing = true;
+//			calcPath();
+			playing = false;
 		}
 	}
 
@@ -139,17 +193,33 @@ public class GUI implements Runnable {
 	 */
 	public void playAlgo() {
 		if(!fruits.isEmpty()) {
+			if(!didFirstPath) {
+				calcPath();
+				didFirstPath = true;
+			}
 			if(pixelDistance(player.getLocation(), closestGhost()) < 50) {
 				calcPath();
 				escape();
 			}
-			if(pixelDistance(player.getLocation(), closestFruit()) > 3 && !radiusInsideBox(player.getLocation(), 10)) {
+			if(pixelDistance(player.getLocation(), closestFruit()) > 10 && !radiusInsideBox(player.getLocation(), 10)) {
 				calcPath();
 			}
 			calcAngle();
 		}
 	}
 
+	public void updateStats() {
+		String info = play.getStatistics();
+		String[] infos = info.split(" ");
+		total_time = Double.parseDouble(infos[8].substring(5));
+		score = Double.parseDouble(infos[9].substring(6));
+		time_left = Double.parseDouble(infos[12].substring(5));
+		killed_by_ghost = Double.parseDouble(infos[16].substring(7));
+		out_of_box = Double.parseDouble(infos[20].substring(4));
+//		System.out.println(Arrays.toString(infos));
+		System.out.println(total_time);
+	}
+	
 	/**
 	 * Distance in pixels between two points using the pythagorean theorem.
 	 * @param p0 First point.
@@ -195,21 +265,24 @@ public class GUI implements Runnable {
 	 */
 	public Point3D closestFruit() {
 		Fruit closest = fruits.get(0);
-		double minTime = Double.POSITIVE_INFINITY;
-		Iterator<Fruit> it = fruits.iterator();
-		while(it.hasNext()) {
-			Fruit f = it.next();
-			double minTimeFromPac = Double.POSITIVE_INFINITY;
-			Iterator<Packman> pack_it = packmans.iterator();
-			while(pack_it.hasNext()) {
-				Packman pack = pack_it.next();
-				A_Star_2 s0 = new A_Star_2(player.getLocation(), f.getLocation(),boxes,this,6);
-				if(s0.pathDistance()/player.getSpeed() < minTime && s0.pathDistance()/player.getSpeed() < timePackmanToFruit(pack, f)) {
-					minTime = s0.pathDistance()/player.getSpeed();
-					closest = f;
-				}
-			}
-		}
+//		A_Star_2 s0 = new A_Star_2(player.getLocation(), closest.getLocation(),boxes,this,6);
+//		s0.algo();
+//		double minTime = s0.pathDistance()/player.getSpeed();
+//		Iterator<Fruit> it = fruits.iterator();
+//		while(it.hasNext()) {
+//			Fruit f = it.next();
+//			double minTimeFromPac = Double.POSITIVE_INFINITY;
+//			Iterator<Packman> pack_it = packmans.iterator();
+//			while(pack_it.hasNext()) {
+//				Packman pack = pack_it.next();
+//				s0 = new A_Star_2(player.getLocation(), f.getLocation(),boxes,this,6);
+//				s0.algo();
+//				if(s0.pathDistance()/player.getSpeed() < minTime && s0.pathDistance()/player.getSpeed() < timePackmanToFruit(pack, f)) {
+//					minTime = s0.pathDistance()/player.getSpeed();
+//					closest = f;
+//				}
+//			}
+//		}
 		return closest.getLocation();
 	}
 
@@ -269,19 +342,21 @@ public class GUI implements Runnable {
 		//Clear Screen
 		g.clearRect(0, 0, width, height);
 		//Draw Here!
-
+		
 		g.drawImage(Assets.map, 0, 0, null);
-		drawBoard(player, packmans, ghosts, fruits, boxes);
+		if(firstLoaded && player != null && packmans != null && ghosts != null && fruits != null && boxes != null) {
+			drawBoard(player, packmans, ghosts, fruits, boxes);
 
-		g.setColor(Color.red);
-		if(!fruits.isEmpty())
-			g.drawLine(player.getLocation().ix(), player.getLocation().iy(), closestFruit().ix(), closestFruit().iy());
+			g.setColor(Color.red);
+			if(!fruits.isEmpty())
+				g.drawLine(player.getLocation().ix(), player.getLocation().iy(), closestFruit().ix(), closestFruit().iy());
 
-		if(star != null) {
-			ArrayList<Point3D> path = star.getPath();
-			drawPath(path);
+			if(star != null) {
+				ArrayList<Point3D> path = star.getPath();
+				drawPath(path);
+			}
 		}
-
+		
 		//End Drawing!
 		bs.show();
 		g.dispose();
@@ -381,7 +456,7 @@ public class GUI implements Runnable {
 				Fruit f2 = it2.next();
 				distSum += pixelDistance(f.getLocation(), f2.getLocation());
 			}
-			int avgDist = distSum/fruits.size()-1;
+			int avgDist = distSum/fruits.size();
 			if(avgDist < minAvgDist) {
 				minAvgDist = avgDist;
 				bestStart = f.getLocation();
@@ -505,6 +580,7 @@ public class GUI implements Runnable {
 				this.boxes.add(box);
 			}
 		}
+		firstLoaded = true;
 	}
 
 	/**
