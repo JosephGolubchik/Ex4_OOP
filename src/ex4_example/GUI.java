@@ -51,11 +51,12 @@ public class GUI implements Runnable {
 	private int dest_id = 0;
 	public Point3D playerStart;
 	
-	private double total_time;
-	private double time_left;
-	private double killed_by_ghost;
-	private double score;
-	private double out_of_box;
+	private String game_file_name = "";
+	private double total_time = 0;
+	private double time_left = 100000;
+	private double killed_by_ghost = 0;
+	private double score = 0;
+	private double out_of_box = 0;
 
 	//Input
 	private KeyManager keyManager;
@@ -108,6 +109,7 @@ public class GUI implements Runnable {
 				int returnValue = jfc.showOpenDialog(null);
 				if (returnValue == JFileChooser.APPROVE_OPTION) {
 					File selectedFile = jfc.getSelectedFile();
+					game_file_name = selectedFile.getAbsolutePath().substring(selectedFile.getAbsolutePath().lastIndexOf('\\')+9, selectedFile.getAbsolutePath().length()-4);
 					play = new Play(selectedFile.getAbsolutePath());
 					String map_data = play.getBoundingBox();
 					String[] words = map_data.split(",");
@@ -218,22 +220,30 @@ public class GUI implements Runnable {
 //		System.out.println(Arrays.toString(infos));
 	}
 	
-	private void drawString(String str, int x) {
-//		g.setFont(new Font("Ariel",15,18));
+	private void drawString(String str, int x, Color c) {
 		g.setFont(new Font("Assistant", Font.BOLD, 18));
 		g.setColor(Color.black);
 		g.drawString(str, x, g.getFontMetrics().getHeight()-3);
-		g.setColor(Color.white);
+		g.setColor(c);
 		g.drawString(str, x+2, g.getFontMetrics().getHeight()-5);
 	}
 	
+	private void drawString(String str, int x, int y, Color c) {
+		g.setFont(new Font("Assistant", Font.BOLD, 18));
+		g.setColor(Color.black);
+		g.drawString(str, x, y-3);
+		g.setColor(c);
+		g.drawString(str, x+2, y-5);
+	}
+	
 	private void drawStats(Graphics g) {
-		int shift = 200;
-		drawString("Total Time: "+total_time, 20 + shift);
-		drawString("Time Left: "+time_left, 220 + shift);
-		drawString("Score: "+score, 420 + shift);
-		drawString("Killed by Ghosts: "+killed_by_ghost, 570 + shift);
-		drawString("Out of Box: "+out_of_box, 790 + shift);
+		int shift = 500;
+		drawString(game_file_name, 5, Color.white);
+		drawString("Total Time: "+total_time, 20 + shift, Color.white);
+		drawString("Time Left: "+time_left, 220 + shift, Color.white);
+		drawString("Score: "+score, 420 + shift, Color.white);
+		drawString("Killed by Ghosts: "+killed_by_ghost, 570 + shift, Color.white);
+		drawString("Out of Box: "+out_of_box, 790 + shift, Color.white);
 	}
 	
 	/**
@@ -364,6 +374,11 @@ public class GUI implements Runnable {
 				ArrayList<Point3D> path = star.getPath();
 				drawPath(path);
 			}
+			g.setColor(new Color(0,0,0,100));
+			g.fillRect(0, 0, width, 25);
+			drawStats(g);
+		}
+		else {
 			g.setColor(new Color(0,0,0,100));
 			g.fillRect(0, 0, width, 25);
 			drawStats(g);

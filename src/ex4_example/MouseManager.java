@@ -27,7 +27,6 @@ public class MouseManager implements MouseListener{
 	public void mousePressed(MouseEvent e) {
 		this.mouseX = e.getX();
 		this.mouseY = e.getY();
-		System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!x: "+mouseX +" y: "+mouseY); 
 	}
 
 	public void mouseReleased(MouseEvent e) {
