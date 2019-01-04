@@ -1,5 +1,6 @@
 package ex4_example;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -208,16 +209,33 @@ public class GUI implements Runnable {
 		}
 	}
 
-	public void updateStats() {
+	private void updateStats() {
 		String info = play.getStatistics();
 		String[] infos = info.split(" ");
 		total_time = Double.parseDouble(infos[8].substring(5));
-		score = Double.parseDouble(infos[9].substring(6));
-		time_left = Double.parseDouble(infos[12].substring(5));
-		killed_by_ghost = Double.parseDouble(infos[16].substring(7));
-		out_of_box = Double.parseDouble(infos[20].substring(4));
+		score = Double.parseDouble(infos[9].substring(7, infos[9].length()-1));
+		time_left = Double.parseDouble(infos[11].substring(5, infos[11].length()-1));
+		killed_by_ghost = Double.parseDouble(infos[14].substring(7, infos[14].length()-1));
+		out_of_box = Double.parseDouble(infos[17].substring(4));
 //		System.out.println(Arrays.toString(infos));
-		System.out.println(total_time);
+	}
+	
+	private void drawString(String str, int x) {
+//		g.setFont(new Font("Ariel",15,18));
+		g.setFont(new Font("Assistant", Font.BOLD, 18));
+		g.setColor(Color.black);
+		g.drawString(str, x, g.getFontMetrics().getHeight()-3);
+		g.setColor(Color.white);
+		g.drawString(str, x+2, g.getFontMetrics().getHeight()-5);
+	}
+	
+	private void drawStats(Graphics g) {
+		int shift = 200;
+		drawString("Total Time: "+total_time, 20 + shift);
+		drawString("Time Left: "+time_left, 220 + shift);
+		drawString("Score: "+score, 420 + shift);
+		drawString("Killed by Ghosts: "+killed_by_ghost, 570 + shift);
+		drawString("Out of Box: "+out_of_box, 790 + shift);
 	}
 	
 	/**
@@ -355,6 +373,9 @@ public class GUI implements Runnable {
 				ArrayList<Point3D> path = star.getPath();
 				drawPath(path);
 			}
+			g.setColor(new Color(0,0,0,100));
+			g.fillRect(0, 0, width, 25);
+			drawStats(g);
 		}
 		
 		//End Drawing!
