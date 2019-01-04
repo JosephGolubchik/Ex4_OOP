@@ -77,8 +77,6 @@ public class GUI implements Runnable {
 	public GUI(){
 		keyManager = new KeyManager();
 		mouseManager = new MouseManager();
-		player = new Player(0, new Point3D(0,0,0), 0, 0);
-		dest = new Point3D(0,0);
 
 	}
 
@@ -118,7 +116,7 @@ public class GUI implements Runnable {
 					loadBoard(play);
 					play.setIDs(209195353,2222,3333);
 					Point3D initLocation = pixelsToPoint(bestStartPoint());
-					play.setInitLocation(initLocation.x(), initLocation.y());
+					play.setInitLocation(initLocation.x()+0.0005, initLocation.y()+0.0005);
 					loadBoard(play);
 					play.start();
 					firstLoaded = true;
@@ -198,11 +196,11 @@ public class GUI implements Runnable {
 				calcPath();
 				didFirstPath = true;
 			}
-			if(pixelDistance(player.getLocation(), closestGhost()) < 50) {
+			if(pixelDistance(player.getLocation(), closestGhost()) < 60) {
 				calcPath();
 				escape();
 			}
-			if(pixelDistance(player.getLocation(), closestFruit()) > 10 && !radiusInsideBox(player.getLocation(), 10)) {
+			if(pixelDistance(player.getLocation(), closestFruit()) > 5 && !radiusInsideBox(player.getLocation(), 10)) {
 				calcPath();
 			}
 			calcAngle();
@@ -282,25 +280,18 @@ public class GUI implements Runnable {
 	 * @return The location of the closest fruit.
 	 */
 	public Point3D closestFruit() {
-		Fruit closest = fruits.get(0);
-//		A_Star_2 s0 = new A_Star_2(player.getLocation(), closest.getLocation(),boxes,this,6);
-//		s0.algo();
-//		double minTime = s0.pathDistance()/player.getSpeed();
-//		Iterator<Fruit> it = fruits.iterator();
-//		while(it.hasNext()) {
-//			Fruit f = it.next();
-//			double minTimeFromPac = Double.POSITIVE_INFINITY;
-//			Iterator<Packman> pack_it = packmans.iterator();
-//			while(pack_it.hasNext()) {
-//				Packman pack = pack_it.next();
-//				s0 = new A_Star_2(player.getLocation(), f.getLocation(),boxes,this,6);
-//				s0.algo();
-//				if(s0.pathDistance()/player.getSpeed() < minTime && s0.pathDistance()/player.getSpeed() < timePackmanToFruit(pack, f)) {
-//					minTime = s0.pathDistance()/player.getSpeed();
-//					closest = f;
-//				}
-//			}
-//		}
+		Fruit closest = null;
+		double minDistance = Double.POSITIVE_INFINITY;
+		Iterator<Fruit> it = fruits.iterator();
+		while(it.hasNext()) {
+			Fruit f = it.next();
+			A_Star_2 s0 = new A_Star_2(player.getLocation(), f.getLocation(),boxes,this,20);
+			s0.algo();
+			if(s0.pathDistance() < minDistance) {
+				minDistance = s0.pathDistance();
+				closest = f;
+			}
+		}
 		return closest.getLocation();
 	}
 
@@ -446,7 +437,7 @@ public class GUI implements Runnable {
 	public void escape() {
 		Point3D closest = closestGhost();
 		double ghostAngle = azimuth(closest, player.getLocation());
-		play.rotate(ghostAngle+100);
+		play.rotate(ghostAngle+50);
 
 	}
 

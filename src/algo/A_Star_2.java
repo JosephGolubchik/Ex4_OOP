@@ -175,7 +175,7 @@ public class A_Star_2 {
 
 		}
 
-		System.out.println("No solution"); 
+//		System.out.println("No solution"); 
 		didFirstCalc = true;
 		done = true;
 	}
@@ -203,6 +203,8 @@ public class A_Star_2 {
 			double distance = 0;
 			Iterator<Cell> it0 = path.iterator();
 			Iterator<Cell> it1 = path.iterator();
+			if(!it1.hasNext())
+				return distance;
 			it1.next();
 			while(it1.hasNext()) {
 				Cell curr = it0.next();
@@ -290,7 +292,7 @@ public class A_Star_2 {
 				Iterator<Ghost> ghost_it = gui.getGhosts().iterator();
 				while(ghost_it.hasNext()) {
 					Ghost ghost = ghost_it.next();
-					int margin = 30;
+					int margin = 50;
 					if( (x*cell_size >= ghost.getLocation().ix() - margin && x*cell_size <= ghost.getLocation().ix() + margin) &
 						(y*cell_size >= ghost.getLocation().iy() - margin && y*cell_size <= ghost.getLocation().iy() + margin) ) {
 						this.ghost = true;
