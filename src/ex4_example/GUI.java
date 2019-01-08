@@ -57,6 +57,7 @@ public class GUI implements Runnable {
 	private double killed_by_ghost = 0;
 	private double score = 0;
 	private double out_of_box = 0;
+	private int escape_count = 0;
 
 	//Input
 	private KeyManager keyManager;
@@ -67,6 +68,7 @@ public class GUI implements Runnable {
 	private boolean playing = false;
 	private boolean firstLoaded = false;
 	private boolean didFirstPath = false;
+	private boolean escaping = false;
 
 
 	/**
@@ -198,11 +200,11 @@ public class GUI implements Runnable {
 				calcPath();
 				didFirstPath = true;
 			}
-			if(pixelDistance(player.getLocation(), closestGhost()) < 60) {
-				calcPath();
+			if(pixelDistance(player.getLocation(), closestGhost()) < 100 || escaping) {
+//				calcPath();
 				escape();
 			}
-			if(pixelDistance(player.getLocation(), closestFruit()) > 5 && !radiusInsideBox(player.getLocation(), 10)) {
+			if(pixelDistance(player.getLocation(), closestFruit()) > 5 && !radiusInsideBox(player.getLocation(), 10) && !escaping) {
 				calcPath();
 			}
 			calcAngle();
@@ -266,22 +268,27 @@ public class GUI implements Runnable {
 	 * - The angle the player needs to go in is the azimuth between the players location and the next point's location.
 	 */
 	private void calcAngle() {
-		ArrayList<Point3D> path = star.getPath();
-		if(path.size() - dest_id - 1 > 0) {
-			dest = path.get(path.size() - dest_id - 1);
-			Point3D dest_gis = pixelsToPoint(dest);
-			Point3D player_gis = pixelsToPoint(player.getLocation());
-			int radius = 5;
-			if((player.getLocation().ix() >= dest.ix()-radius && player.getLocation().ix() <= dest.ix()+radius) &&
-					(player.getLocation().iy() >= dest.iy()-radius && player.getLocation().iy() <= dest.iy()+radius)) {
-				dest_id++;
+		if(!escaping) {
+			ArrayList<Point3D> path = star.getPath();
+			if(path.size() - dest_id - 1 > 0) {
+				dest = path.get(path.size() - dest_id - 1);
+				Point3D dest_gis = pixelsToPoint(dest);
+				Point3D player_gis = pixelsToPoint(player.getLocation());
+				int radius = 5;
+				if((player.getLocation().ix() >= dest.ix()-radius && player.getLocation().ix() <= dest.ix()+radius) &&
+						(player.getLocation().iy() >= dest.iy()-radius && player.getLocation().iy() <= dest.iy()+radius)) {
+					dest_id++;
+				}
+				player.angle = azimuth(player_gis, dest_gis);
+				play.rotate(player.angle);
 			}
-			player.angle = azimuth(player_gis, dest_gis);
-			play.rotate(player.angle);
+			else {
+				dest_id = 0;
+				calcPath();	
+			}
 		}
 		else {
-			dest_id = 0;
-			calcPath();	
+			play.rotate(player.angle);
 		}
 	}
 
@@ -322,6 +329,14 @@ public class GUI implements Runnable {
 			}
 		}
 		return closest.getLocation();
+	}
+	
+	public boolean isOppositeAngle(Ghost ghost) {
+		double ghost_angle = azimuth(player.getLocation(), ghost.getLocation());
+		double angle_diff = Math.min(player.angle, ghost_angle)+180-Math.max(player.angle, ghost_angle);
+		if(Math.abs(angle_diff) <= 30)
+			return true;
+		return false;
 	}
 
 	/**
@@ -450,10 +465,23 @@ public class GUI implements Runnable {
 	}
 
 	public void escape() {
-		Point3D closest = closestGhost();
-		double ghostAngle = azimuth(closest, player.getLocation());
-		play.rotate(ghostAngle+50);
-
+		Iterator<Ghost> ghost_it = ghosts.iterator();
+		while(ghost_it.hasNext() && !escaping) {
+			Ghost curr = ghost_it.next();
+			escape_count = 0;
+			if(isOppositeAngle(curr)) {
+				double new_angle = player.angle - 70;
+				if (new_angle >=360) new_angle = player.angle + 70;
+				System.out.println("Current player angle: "+player.angle);
+				player.angle = new_angle;
+				System.out.println("changing angle, new angle: "+player.angle);
+				escaping = true;
+			}
+		}
+		escape_count++;
+		System.out.println(escape_count);
+		if(escape_count >= 60 || escape_count == 0)
+			escaping = false;
 	}
 
 	public double timePlayerToFruit(Fruit fruit) {
@@ -578,8 +606,13 @@ public class GUI implements Runnable {
 				Point3D pix_point = pointToPixels(gis_point);
 				double speed_weight = Double.parseDouble(words[5]);
 				if(type.equals("M")) {
-					double radius = Double.parseDouble(words[6]);
-					player = new Player(id, pix_point, speed_weight, radius);
+					if(player == null) {
+						double radius = Double.parseDouble(words[6]);
+						player = new Player(id, pix_point, speed_weight, radius);
+					}
+					else {
+						player.setLocation(pix_point);
+					}
 				}
 				else if(type.equals("P")) {
 					double radius = Double.parseDouble(words[6]);
