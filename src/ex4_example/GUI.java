@@ -200,7 +200,7 @@ public class GUI implements Runnable {
 				calcPath();
 				didFirstPath = true;
 			}
-			if(pixelDistance(player.getLocation(), closestGhost()) < 100 || escaping) {
+			if(pixelDistance(player.getLocation(), closestGhost()) < 70 || escaping) {
 //				calcPath();
 				escape();
 			}
@@ -465,6 +465,17 @@ public class GUI implements Runnable {
 	}
 
 	public void escape() {
+//		double distance = 100;
+//		Point3D closest_ghost = closestGhost();
+//		double player_to_ghost_angle = azimuth(player.getLocation(), closest_ghost);
+//
+//		while(new_angle < player_to_ghost_angle - 50) {
+//			new_angle += 50;
+//			if(!goesIntoWall(new_angle, distance) )
+//		}
+//		
+//		
+//		
 		Iterator<Ghost> ghost_it = ghosts.iterator();
 		while(ghost_it.hasNext() && !escaping) {
 			Ghost curr = ghost_it.next();
