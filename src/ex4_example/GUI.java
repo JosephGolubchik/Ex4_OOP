@@ -26,6 +26,7 @@ import entities.Ghost;
 import entities.Packman;
 import entities.Player;
 import entities.Robot;
+import game.GameBoard;
 import gfx.Assets;
 
 public class GUI implements Runnable {
@@ -35,29 +36,13 @@ public class GUI implements Runnable {
 	private int width, height;
 	private BufferStrategy bs;
 	private Graphics g;
-
-	//Game
-	private A_Star_2 star;
 	private Thread thread;
-	private Play play;
-	private Point3D start;
-	private Point3D end;
-	private Player player;
-	private ArrayList<Packman> packmans;
-	private ArrayList<Ghost> ghosts;
-	private ArrayList<Fruit> fruits;
-	private ArrayList<Box> boxes;
-	private Point3D dest;
-	private int dest_id = 0;
-	public Point3D playerStart;
 	
-	private String game_file_name = "";
-	private double total_time = 0;
-	private double time_left = 100000;
-	private double killed_by_ghost = 0;
-	private double score = 0;
-	private double out_of_box = 0;
-	private int escape_count = 0;
+	//Game
+	private GameBoard board;
+	private String game_file_name;
+	
+//	private int escape_count = 0;
 
 	//Input
 	private KeyManager keyManager;
@@ -66,8 +51,6 @@ public class GUI implements Runnable {
 	//Flags
 	private boolean running = false;
 	private boolean playing = false;
-	private boolean firstLoaded = false;
-	private boolean didFirstPath = false;
 	private boolean escaping = false;
 
 
@@ -111,20 +94,8 @@ public class GUI implements Runnable {
 				int returnValue = jfc.showOpenDialog(null);
 				if (returnValue == JFileChooser.APPROVE_OPTION) {
 					File selectedFile = jfc.getSelectedFile();
-					game_file_name = selectedFile.getAbsolutePath().substring(selectedFile.getAbsolutePath().lastIndexOf('\\')+9, selectedFile.getAbsolutePath().length()-4);
-					play = new Play(selectedFile.getAbsolutePath());
-					String map_data = play.getBoundingBox();
-					String[] words = map_data.split(",");
-					start = new Point3D(Double.parseDouble(words[2]), Double.parseDouble(words[3]));
-					end = new Point3D(Double.parseDouble(words[5]), Double.parseDouble(words[6]));
-					loadBoard(play);
-					play.setIDs(209195353,2222,3333);
-					Point3D initLocation = pixelsToPoint(bestStartPoint());
-					play.setInitLocation(initLocation.x()+0.0005, initLocation.y()+0.0005);
-					loadBoard(play);
-					play.start();
-					firstLoaded = true;
-					didFirstPath = false;
+					game_file_name = selectedFile.getAbsolutePath();
+					board = new GameBoard(game_file_name);
 				}
 			}         
 		});  
@@ -132,6 +103,7 @@ public class GUI implements Runnable {
 		runBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
+				board.startGame();
 				playing = true;
 			}         
 		});  
@@ -186,41 +158,6 @@ public class GUI implements Runnable {
 			playing = false;
 		}
 	}
-
-	/**
-	 * Call next move in the game:
-	 * - If all fruits have been eaten, do nothing.
-	 * - If player is very close to his destination fruit, stop recalculating the path until it has been eaten, to prevent going in circles around the fruit.
-	 * - If the player is close to a box corner, recalculate the path to prevent the player from getting stuck in a wall.
-	 * - Calculate the angle the player needs to move in and move him using calcAngle() function.
-	 */
-	public void playAlgo() {
-		if(!fruits.isEmpty()) {
-			if(!didFirstPath) {
-				calcPath();
-				didFirstPath = true;
-			}
-			if(pixelDistance(player.getLocation(), closestGhost()) < 70 || escaping) {
-//				calcPath();
-				escape();
-			}
-			if(pixelDistance(player.getLocation(), closestFruit()) > 5 && !radiusInsideBox(player.getLocation(), 10) && !escaping) {
-				calcPath();
-			}
-			calcAngle();
-		}
-	}
-
-	private void updateStats() {
-		String info = play.getStatistics();
-		String[] infos = info.split(" ");
-		total_time = Double.parseDouble(infos[8].substring(5));
-		score = Double.parseDouble(infos[9].substring(7, infos[9].length()-1));
-		time_left = Double.parseDouble(infos[11].substring(5, infos[11].length()-1));
-		killed_by_ghost = Double.parseDouble(infos[14].substring(7, infos[14].length()-1));
-		out_of_box = Double.parseDouble(infos[17].substring(4));
-//		System.out.println(Arrays.toString(infos));
-	}
 	
 	private void drawString(String str, int x, Color c) {
 		g.setFont(new Font("Assistant", Font.BOLD, 18));
@@ -240,7 +177,9 @@ public class GUI implements Runnable {
 	
 	private void drawStats(Graphics g) {
 		int shift = 500;
-		drawString(game_file_name, 5, Color.white);
+		String file_name = game_file_name.substring(game_file_name.lastIndexOf('\\')+9, game_file_name.length()-4);
+		double[] stats = board.getStats();
+		drawString(file_name, 5, Color.white);
 		drawString("Total Time: "+total_time, 20 + shift, Color.white);
 		drawString("Time Left: "+time_left, 220 + shift, Color.white);
 		drawString("Score: "+score, 420 + shift, Color.white);
@@ -248,18 +187,6 @@ public class GUI implements Runnable {
 		drawString("Out of Box: "+out_of_box, 790 + shift, Color.white);
 	}
 	
-	/**
-	 * Distance in pixels between two points using the pythagorean theorem.
-	 * @param p0 First point.
-	 * @param p1 Second point.
-	 * @return distance in pixels between the two points.
-	 */
-	public double pixelDistance(Point3D p0, Point3D p1) {
-		int dx = Math.abs(p0.ix() - p1.ix());
-		int dy = Math.abs(p0.iy() - p1.iy());
-		return Math.sqrt((dx*dx) + (dy*dy));
-	}
-
 	/**
 	 * Calculates the angle the player needs to move in next:
 	 * - If the player reached the last point of his current path, calculate a new path and reset dest_id.
@@ -378,7 +305,7 @@ public class GUI implements Runnable {
 		//Draw Here!
 		
 		g.drawImage(Assets.map, 0, 0, null);
-		if(firstLoaded && player != null && packmans != null && ghosts != null && fruits != null && boxes != null) {
+		if(gameBoard.firstLoaded && player != null && packmans != null && ghosts != null && fruits != null && boxes != null) {
 			drawBoard(player, packmans, ghosts, fruits, boxes);
 
 			g.setColor(Color.red);
@@ -506,30 +433,7 @@ public class GUI implements Runnable {
 		return pixelDistance(pac.getLocation(), fruit.getLocation())/pac.getSpeed();
 	}
 
-	/**
-	 * Finds the best starting point for the player: the fruit which as the most close fruits to it.
-	 * @return Location of the best starting point.
-	 */
-	public Point3D bestStartPoint() {
-		int minAvgDist = Integer.MAX_VALUE;
-		Point3D bestStart = fruits.get(0).getLocation();
-		Iterator<Fruit> it = fruits.iterator();
-		while(it.hasNext()) {
-			int distSum = 0;
-			Fruit f = it.next();
-			Iterator<Fruit> it2 = fruits.iterator();
-			while(it2.hasNext()) {
-				Fruit f2 = it2.next();
-				distSum += pixelDistance(f.getLocation(), f2.getLocation());
-			}
-			int avgDist = distSum/fruits.size();
-			if(avgDist < minAvgDist) {
-				minAvgDist = avgDist;
-				bestStart = f.getLocation();
-			}
-		}
-		return bestStart;
-	}
+	
 
 	/**
 	 * Checks if the player is within a square radius of a box corner.
@@ -703,72 +607,7 @@ public class GUI implements Runnable {
 		}
 	}
 
-	/**
-	 * Returns a point some amount of meters off in a given azimuth from a given point.
-	 * @param pix_point Given point in pixels.
-	 * @param meters Amount of meters to move.
-	 * @param azimuth The azimuth.
-	 * @return A new point in pixels some amount of meters away from the given pixel point.
-	 */
-	public Point3D addMetersAzimuth(Point3D pix_point, double meters, double azimuth) {
-		Point3D gps = pixelsToPoint(pix_point);
-		double R = 6371;
-		azimuth = Math.toRadians(azimuth);
-		double km = meters/1000;
-
-		double lat1 = Math.toRadians(gps.x());
-		double lon1 = Math.toRadians(gps.y());
-
-		double lat2 = Math.asin( Math.sin(lat1)*Math.cos(km/R) +
-				Math.cos(lat1)*Math.sin(km/R)*Math.cos(azimuth));
-
-		double lon2 = lon1 + Math.atan2(Math.sin(azimuth)*Math.sin(km/R)*Math.cos(lat1),
-				Math.cos(km/R)-Math.sin(lat1)*Math.sin(lat2));
-
-		lat2 = Math.toDegrees(lat2);
-		lon2 = Math.toDegrees(lon2);
-		Point3D new_gis = new Point3D(lat2, lon2);
-
-		return pointToPixels(new_gis);
-	}
-
-	/**
-	 * Gets a point in latitude and longitude and returns a point in pixels on the image
-	 * We used stackoverflow.com/questions/38748832/convert-longitude-and-latitude-coordinates-to-image-of-a-map-pixels-x-and-y-coor
-	 * @param coordinate
-	 * @return
-	 */
-	public Point3D pointToPixels(Point3D latLonPoint) {
-		double mapLatDiff = start.x() - end.x();
-		double mapLongDiff = end.y() - start.y();
-
-		double latDiff = start.x() - latLonPoint.x();
-		double longDiff = latLonPoint.y() - start.y();
-
-		int x = (int) (width*(longDiff/mapLongDiff));
-		int y = (int) (height*(latDiff/mapLatDiff));
-
-		return new Point3D(x, y);
-	}
-
-	/**
-	 * Gets a point in pixels and returns a point in latitude and longitude
-	 * We used stackoverflow.com/questions/38748832/convert-longitude-and-latitude-coordinates-to-image-of-a-map-pixels-x-and-y-coor
-	 * @param coordinate
-	 * @return
-	 */
-	public Point3D pixelsToPoint(Point3D pixelsPoint) {
-		double mapLatDiff = start.x() - end.x();
-		double mapLongDiff = end.y() - start.y();
-
-		double latDiff = pixelsPoint.y() * mapLatDiff/height;
-		double longDiff = pixelsPoint.x() * mapLongDiff/width;
-
-		double newLat = start.x() - latDiff;
-		double newLong = start.y() + longDiff;
-
-		return new Point3D(newLat, newLong);
-	}
+	
 
 	//Getters
 

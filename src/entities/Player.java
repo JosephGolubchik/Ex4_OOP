@@ -21,6 +21,7 @@ public class Player extends Robot{
 		dest = new Point3D(0,0);
 	}
 
+	
 	public void render(Graphics g) {
 		g.drawImage(Assets.player, location.ix() - WIDTH/2, location.iy() - HEIGHT/2, WIDTH, HEIGHT, null);
 	}
