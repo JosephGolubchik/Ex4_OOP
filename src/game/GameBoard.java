@@ -203,7 +203,7 @@ public class GameBoard {
 //				calcPath();
 //				escape();
 			}
-			if(MyCoords.pixelDistance(player.getLocation(), closestFruit()) > 5 && !radiusInsideBox(player.getLocation(), 10) && !escaping) {
+			if(MyCoords.pixelDistance(player.getLocation(), closestFruit()) > 7 && !radiusInsideBox(player.getLocation(), 10) && !escaping) {
 				calcPath();
 			}
 			calcAngle();
