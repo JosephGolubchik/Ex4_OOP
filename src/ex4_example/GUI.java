@@ -119,7 +119,7 @@ public class GUI implements Runnable {
 	 * Called every time the window is refreshed:
 	 * - Calls the tick function of the keyboard listener.
 	 * - Loads the updated game board.
-	 * - Calls a functin to recalculate the players path.
+	 * - Calls a function to recalculate the players path.
 	 * - Move function checks which keys are pressed and acts accordingly.
 	 * - Calls the game to continue if the game has been started.
 	 */
@@ -127,9 +127,7 @@ public class GUI implements Runnable {
 		keyManager.tick();
 		move();
 		if(playing) {
-			loadBoard(play);
-			playAlgo();
-			updateStats();
+			board.nextMove();
 		}
 	}
 
@@ -141,22 +139,22 @@ public class GUI implements Runnable {
 	 * - Moves the player according to the optimal apth and recalculates when needed after 't' is pressed once, stops if 't' is pressed again.
 	 */
 	private void move() {
-		if(keyManager.down)
-			play.rotate(0);
-		if(keyManager.right)
-			play.rotate(90);
-		if(keyManager.up)
-			play.rotate(180);
-		if(keyManager.left)
-			play.rotate(270);
-		if(keyManager.e)
-			calcPath();
-		if(keyManager.r)
-			calcAngle();
-		if(keyManager.t) {
+//		if(keyManager.down)
+//			play.rotate(0);
+//		if(keyManager.right)
+//			play.rotate(90);
+//		if(keyManager.up)
+//			play.rotate(180);
+//		if(keyManager.left)
+//			play.rotate(270);
+//		if(keyManager.e)
 //			calcPath();
-			playing = false;
-		}
+//		if(keyManager.r)
+//			calcAngle();
+//		if(keyManager.t) {
+////			calcPath();
+//			playing = false;
+//		}
 	}
 	
 	private void drawString(String str, int x, Color c) {
@@ -180,107 +178,11 @@ public class GUI implements Runnable {
 		String file_name = game_file_name.substring(game_file_name.lastIndexOf('\\')+9, game_file_name.length()-4);
 		double[] stats = board.getStats();
 		drawString(file_name, 5, Color.white);
-		drawString("Total Time: "+total_time, 20 + shift, Color.white);
-		drawString("Time Left: "+time_left, 220 + shift, Color.white);
-		drawString("Score: "+score, 420 + shift, Color.white);
-		drawString("Killed by Ghosts: "+killed_by_ghost, 570 + shift, Color.white);
-		drawString("Out of Box: "+out_of_box, 790 + shift, Color.white);
-	}
-	
-	/**
-	 * Calculates the angle the player needs to move in next:
-	 * - If the player reached the last point of his current path, calculate a new path and reset dest_id.
-	 * - Destination is decided using dest_id as an index.
-	 * - If the player is very close to the next point in his path, increment dest_id.
-	 * - The angle the player needs to go in is the azimuth between the players location and the next point's location.
-	 */
-	private void calcAngle() {
-		if(!escaping) {
-			ArrayList<Point3D> path = star.getPath();
-			if(path.size() - dest_id - 1 > 0) {
-				dest = path.get(path.size() - dest_id - 1);
-				Point3D dest_gis = pixelsToPoint(dest);
-				Point3D player_gis = pixelsToPoint(player.getLocation());
-				int radius = 5;
-				if((player.getLocation().ix() >= dest.ix()-radius && player.getLocation().ix() <= dest.ix()+radius) &&
-						(player.getLocation().iy() >= dest.iy()-radius && player.getLocation().iy() <= dest.iy()+radius)) {
-					dest_id++;
-				}
-				player.angle = azimuth(player_gis, dest_gis);
-				play.rotate(player.angle);
-			}
-			else {
-				dest_id = 0;
-				calcPath();	
-			}
-		}
-		else {
-			play.rotate(player.angle);
-		}
-	}
-
-	/**
-	 * Returns the fruit that the player can get to the fastest.
-	 * @return The location of the closest fruit.
-	 */
-	public Point3D closestFruit() {
-		Fruit closest = null;
-		double minDistance = Double.POSITIVE_INFINITY;
-		Iterator<Fruit> it = fruits.iterator();
-		while(it.hasNext()) {
-			Fruit f = it.next();
-			A_Star_2 s0 = new A_Star_2(player.getLocation(), f.getLocation(),boxes,this,20);
-			s0.algo();
-			if(s0.pathDistance() < minDistance) {
-				minDistance = s0.pathDistance();
-				closest = f;
-			}
-		}
-		return closest.getLocation();
-	}
-
-	/**
-	 * Returns the ghost that is closest to the player.
-	 * @return The location of the closest ghost.
-	 */
-	public Point3D closestGhost() {
-		if(ghosts.size() == 0) return new Point3D(0,0);
-		Ghost closest = ghosts.get(0);
-		double minDistance = Double.POSITIVE_INFINITY;
-		Iterator<Ghost> it = ghosts.iterator();
-		while(it.hasNext()) {
-			Ghost g = it.next();
-			if(pixelDistance(player.getLocation(),g.getLocation()) < minDistance) {
-				minDistance = pixelDistance(player.getLocation(),g.getLocation());
-				closest = g;
-			}
-		}
-		return closest.getLocation();
-	}
-	
-	public boolean isOppositeAngle(Ghost ghost) {
-		double ghost_angle = azimuth(player.getLocation(), ghost.getLocation());
-		double angle_diff = Math.min(player.angle, ghost_angle)+180-Math.max(player.angle, ghost_angle);
-		if(Math.abs(angle_diff) <= 30)
-			return true;
-		return false;
-	}
-
-	/**
-	 * Azimuth between two points.
-	 * @param gps0 First point.
-	 * @param gps1 Second point.
-	 * @return The azimuth between the two points in degrees.
-	 */
-	public double azimuth(Point3D gps0, Point3D gps1) {
-		int radius = 6371000;
-		double lat0 = Math.toRadians(gps0.x()); double lon0 = Math.toRadians(gps0.y());
-		double lat1 = Math.toRadians(gps1.x()); double lon1 = Math.toRadians(gps1.y());
-		double dlat = Math.toRadians(gps1.x() - gps0.x());
-		double dlon = Math.toRadians(gps1.y() - gps0.y());
-		double azimuth = Math.atan2(Math.sin(dlon) * Math.cos(lat1), Math.cos(lat0) * Math.sin(lat1) - Math.sin(lat0)
-				* Math.cos(lat1) * Math.cos(dlon));
-		return Math.toDegrees(azimuth);
+		drawString("Total Time: "+stats[0], 20 + shift, Color.white);
+		drawString("Time Left: "+stats[2], 220 + shift, Color.white);
+		drawString("Score: "+stats[1], 420 + shift, Color.white);
+		drawString("Killed by Ghosts: "+stats[3], 570 + shift, Color.white);
+		drawString("Out of Box: "+stats[4], 790 + shift, Color.white);
 	}
 
 	/**
@@ -304,26 +206,31 @@ public class GUI implements Runnable {
 		g.clearRect(0, 0, width, height);
 		//Draw Here!
 		
+		// Draw ariel map image
 		g.drawImage(Assets.map, 0, 0, null);
-		if(gameBoard.firstLoaded && player != null && packmans != null && ghosts != null && fruits != null && boxes != null) {
-			drawBoard(player, packmans, ghosts, fruits, boxes);
+		
+//		if(board.isFirstLoaded() && board.getPlayer() != null && board.getPackmans() != null && board.getGhosts() != null && board.getFruits() != null && board.getBoxes() != null) {
+		if(board != null && board.isFirstLoaded()) {
+			drawBoard(board);
 
+			// Draw straight line from player to closest fruit
 			g.setColor(Color.red);
-			if(!fruits.isEmpty())
-				g.drawLine(player.getLocation().ix(), player.getLocation().iy(), closestFruit().ix(), closestFruit().iy());
-
-			if(star != null) {
-				ArrayList<Point3D> path = star.getPath();
-				drawPath(path);
+			if(!board.getFruits().isEmpty()) {
+				g.drawLine(board.getPlayer().getLocation().ix(), board.getPlayer().getLocation().iy(), board.closestFruit().ix(), board.closestFruit().iy());
 			}
+			
+			//Draw player path
+			if(board.isDidFirstPath())
+				drawPath(board.getPlayer().getPath());
+			
+			// Draw stats
 			g.setColor(new Color(0,0,0,100));
 			g.fillRect(0, 0, width, 25);
 			drawStats(g);
 		}
-		else {
+		else { // If board hasn't loaded yet, just draw stats.
 			g.setColor(new Color(0,0,0,100));
 			g.fillRect(0, 0, width, 25);
-			drawStats(g);
 		}
 		
 		//End Drawing!
@@ -368,124 +275,6 @@ public class GUI implements Runnable {
 	}
 
 	/**
-	 * Calls the A* algorithm to calculate the shortest path from the player to his destination:
-	 * - If there are no fruits left do nothing.
-	 * - Sends the player to the fruit it is closest to.
-	 * - If the player is very close to the fruit, calculate a very accurate path to the fruit in order to not miss the specific pixel.
-	 * - Also do the accurate calculation if the player is close to a ghost and if the player is close to a box corner.
-	 * - Otherwise calculate a less accurate but good enough path, this takes significantly less time to calculate.
-	 */
-	public void calcPath() {
-		if(fruits.size() > 0) {
-			Point3D player_loc = player.getLocation();
-			Point3D dest_loc = closestFruit();
-			if(pixelDistance(player_loc, dest_loc) < 30 || radiusNearBoxCorner(player.getLocation(), 10)) {
-				star = new A_Star_2(player_loc, dest_loc, boxes, this, 2);
-			}
-			else {
-				star = new A_Star_2(player_loc, dest_loc, boxes, this, 7);
-			}
-
-			star.algo();
-		}
-
-	}
-
-	public void escape() {
-//		double distance = 100;
-//		Point3D closest_ghost = closestGhost();
-//		double player_to_ghost_angle = azimuth(player.getLocation(), closest_ghost);
-//
-//		while(new_angle < player_to_ghost_angle - 50) {
-//			new_angle += 50;
-//			if(!goesIntoWall(new_angle, distance) )
-//		}
-//		
-//		
-//		
-		Iterator<Ghost> ghost_it = ghosts.iterator();
-		while(ghost_it.hasNext() && !escaping) {
-			Ghost curr = ghost_it.next();
-			escape_count = 0;
-			if(isOppositeAngle(curr)) {
-				double new_angle = player.angle - 70;
-				if (new_angle >=360) new_angle = player.angle + 70;
-				System.out.println("Current player angle: "+player.angle);
-				player.angle = new_angle;
-				System.out.println("changing angle, new angle: "+player.angle);
-				escaping = true;
-			}
-		}
-		escape_count++;
-		System.out.println(escape_count);
-		if(escape_count >= 60 || escape_count == 0)
-			escaping = false;
-	}
-
-	public double timePlayerToFruit(Fruit fruit) {
-		A_Star_2 st = new A_Star_2(player.getLocation(), fruit.getLocation(), boxes, this, 6);
-		st.algo();
-		double distance = st.pathDistance();
-		return distance/player.getSpeed();
-	}
-
-	public double timePackmanToFruit(Packman pac, Fruit fruit) {
-		return pixelDistance(pac.getLocation(), fruit.getLocation())/pac.getSpeed();
-	}
-
-	
-
-	/**
-	 * Checks if the player is within a square radius of a box corner.
-	 * @param position Player's position.
-	 * @param radius The radius.
-	 * @return True or false.
-	 */
-	public boolean radiusNearBoxCorner(Point3D position, int radius) {
-		Iterator<Box> box_it = boxes.iterator();
-		while(box_it.hasNext()) {
-			Box box = box_it.next();
-			Point3D top_left = box.getTop_left_pix_point();
-			Point3D bottom_right = box.getBottom_right_pix_point();
-			Point3D top_right = new Point3D(bottom_right.ix(), top_left.iy());
-			Point3D bottom_left = new Point3D(top_left.ix(), bottom_right.iy());
-			Point3D[] corners = {top_left, bottom_right, top_right, bottom_left};
-			for (int x = 0; x < 2*radius+1; x++) {
-				for (int y = 0; y < 2*radius+1; y++) {
-					for (int i = 0; i < corners.length; i++) {
-						if((position.ix()-radius+x >= corners[i].ix()-radius && position.ix()-radius+x <= corners[i].ix()+radius) &&
-								(position.iy()-radius+y >= corners[i].iy()-radius && position.iy()-radius+y <= corners[i].iy()+radius)) {
-							return true;
-						}
-					}
-				}
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Checks if the player is within a square radius of any point of a box.
-	 * @param position Players position.
-	 * @param radius The radius.
-	 * @return True or false.
-	 */
-	public boolean radiusInsideBox(Point3D position, int radius) {
-		Iterator<Box> box_it = boxes.iterator();
-		while(box_it.hasNext()) {
-			Box box = box_it.next();
-			for (int i = 0; i < 2*radius+1; i++) {
-				for (int j = 0; j < 2*radius+1; j++) {
-					if(box.isInside(position.ix() - radius + i, position.iy() - radius + j)) {
-						return true;
-					}
-				}
-			}
-		}
-		return false;
-	}
-
-	/**
 	 * Draws the current path.
 	 * @param path
 	 */
@@ -499,66 +288,6 @@ public class GUI implements Runnable {
 	}
 
 	/**
-	 * Reads the game board information string we get from the play object and creates the packmans, ghosts, fruits, boxes and the player.
-	 * @param play
-	 */
-	private void loadBoard(Play play) {
-		ArrayList<String> board = play.getBoard();
-		Iterator<String> it = board.iterator();
-		packmans = new ArrayList<Packman>();
-		ghosts = new ArrayList<Ghost>();
-		fruits = new ArrayList<Fruit>();
-		boxes = new ArrayList<Box>();
-		while(it.hasNext()) {
-			String line = it.next();
-			String[] words = line.split(",");
-
-			String type = words[0];
-			int id = Integer.parseInt(words[1]);
-
-			if(!type.equals("B")) {
-				LatLonAlt gis_point = new LatLonAlt(Double.parseDouble(words[2]), Double.parseDouble(words[3]), Double.parseDouble(words[4]));
-				Point3D pix_point = pointToPixels(gis_point);
-				double speed_weight = Double.parseDouble(words[5]);
-				if(type.equals("M")) {
-					if(player == null) {
-						double radius = Double.parseDouble(words[6]);
-						player = new Player(id, pix_point, speed_weight, radius);
-					}
-					else {
-						player.setLocation(pix_point);
-					}
-				}
-				else if(type.equals("P")) {
-					double radius = Double.parseDouble(words[6]);
-					Packman packman = new Packman(id, pix_point, speed_weight, radius);
-					packmans.add(packman);
-				}
-				else if(type.equals("G")) {
-					double radius = Double.parseDouble(words[6]);
-					Ghost ghost = new Ghost(id, pix_point, speed_weight, radius);
-					ghosts.add(ghost);
-				}
-				else if(type.equals("F")) {
-					Fruit fruit = new Fruit(id, pix_point, speed_weight);
-					fruits.add(fruit);
-				}
-			}
-			else if(type.equals("B")) {
-				LatLonAlt top_left_gis_point = new LatLonAlt(Double.parseDouble(words[2]), Double.parseDouble(words[3]), Double.parseDouble(words[4]));
-				LatLonAlt bottom_right_gis_point = new LatLonAlt(Double.parseDouble(words[5]), Double.parseDouble(words[6]), Double.parseDouble(words[7]));
-				Point3D top_left_pix_point = pointToPixels(top_left_gis_point);
-				Point3D bottom_right_pix_point = pointToPixels(bottom_right_gis_point);
-				int box_width = bottom_right_pix_point.ix() - top_left_pix_point.ix();
-				int box_height = bottom_right_pix_point.iy() - top_left_pix_point.iy();
-				Box box = new Box(top_left_pix_point, bottom_right_pix_point, box_width, box_height);
-				this.boxes.add(box);
-			}
-		}
-		firstLoaded = true;
-	}
-
-	/**
 	 * Draws the packmans, ghosts, fruits, boxes and the player.
 	 * @param player
 	 * @param packmans
@@ -566,18 +295,18 @@ public class GUI implements Runnable {
 	 * @param fruits
 	 * @param boxes
 	 */
-	private void drawBoard(Player player, ArrayList<Packman> packmans, ArrayList<Ghost> ghosts, ArrayList<Fruit> fruits, ArrayList<Box> boxes) {
-		player.render(g);
-		Iterator<Packman> pack_it = packmans.iterator();
+	private void drawBoard(GameBoard board) {
+		board.getPlayer().render(g);
+		Iterator<Packman> pack_it = board.getPackmans().iterator();
 		while(pack_it.hasNext())
 			pack_it.next().render(g);
-		Iterator<Ghost> ghost_it = ghosts.iterator();
+		Iterator<Ghost> ghost_it = board.getGhosts().iterator();
 		while(ghost_it.hasNext())
 			ghost_it.next().render(g);
-		Iterator<Fruit> fruit_it = fruits.iterator();
+		Iterator<Fruit> fruit_it = board.getFruits().iterator();
 		while(fruit_it.hasNext())
 			fruit_it.next().render(g);
-		Iterator<Box> box_it = boxes.iterator();
+		Iterator<Box> box_it = board.getBoxes().iterator();
 		while(box_it.hasNext())
 			box_it.next().render(g);
 	}
@@ -610,27 +339,6 @@ public class GUI implements Runnable {
 	
 
 	//Getters
-
-	public ArrayList<Packman> getPackmans() {
-		return packmans;
-	}
-
-	public ArrayList<Ghost> getGhosts() {
-		return ghosts;
-	}
-
-	public ArrayList<Fruit> getFruits() {
-		return fruits;
-	}
-
-	public ArrayList<Box> getBoxes() {
-		return boxes;
-	}
-
-	public Player getPlayer() {
-		return player;
-	}
-
 	public KeyManager getKeyManager() {
 		return keyManager;
 	}

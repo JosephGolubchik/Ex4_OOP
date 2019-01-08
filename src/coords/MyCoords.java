@@ -62,6 +62,21 @@ public class MyCoords {
 		return new_gps;
 	}
 
-	
+	/**
+	 * Azimuth between two points.
+	 * @param gps0 First point.
+	 * @param gps1 Second point.
+	 * @return The azimuth between the two points in degrees.
+	 */
+	public static double azimuth(Point3D gps0, Point3D gps1) {
+		int radius = 6371000;
+		double lat0 = Math.toRadians(gps0.x()); double lon0 = Math.toRadians(gps0.y());
+		double lat1 = Math.toRadians(gps1.x()); double lon1 = Math.toRadians(gps1.y());
+		double dlat = Math.toRadians(gps1.x() - gps0.x());
+		double dlon = Math.toRadians(gps1.y() - gps0.y());
+		double azimuth = Math.atan2(Math.sin(dlon) * Math.cos(lat1), Math.cos(lat0) * Math.sin(lat1) - Math.sin(lat0)
+				* Math.cos(lat1) * Math.cos(dlon));
+		return Math.toDegrees(azimuth);
+	}
 	
 }

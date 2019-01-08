@@ -9,6 +9,7 @@ import Geom.Point3D;
 import entities.Box;
 import entities.Ghost;
 import ex4_example.GUI;
+import game.GameBoard;
 
 public class A_Star_2 {
 
@@ -21,7 +22,7 @@ public class A_Star_2 {
 
 	public Cell[][] grid;
 
-	public GUI gui;
+	public GameBoard board;
 
 	public ArrayList<Cell> openSet;
 	public ArrayList<Cell> closedSet;
@@ -38,12 +39,12 @@ public class A_Star_2 {
 	
 	public int cell_size;
 
-	public A_Star_2(Point3D start_point, Point3D end_point, ArrayList<Box> boxes, GUI gui, int cell_size) {
+	public A_Star_2(Point3D start_point, Point3D end_point, ArrayList<Box> boxes, GameBoard board, int cell_size) {
 		this.cell_size = cell_size;
-		this.COLS = gui.getWidth()/cell_size;
-		this.ROWS = gui.getHeight()/cell_size;
+		this.COLS = board.getWidth()/cell_size;
+		this.ROWS = board.getHeight()/cell_size;
 		this.boxes = boxes;
-		this.gui = gui;
+		this.board = board;
 		initGrid();
 		done = false;
 		path = new ArrayList<Cell>();
@@ -288,8 +289,8 @@ public class A_Star_2 {
 				}
 			}	
 			
-			if(gui.getGhosts() != null) {
-				Iterator<Ghost> ghost_it = gui.getGhosts().iterator();
+			if(board.getGhosts() != null) {
+				Iterator<Ghost> ghost_it = board.getGhosts().iterator();
 				while(ghost_it.hasNext()) {
 					Ghost ghost = ghost_it.next();
 					int margin = 50;
