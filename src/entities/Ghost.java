@@ -17,4 +17,5 @@ public class Ghost extends Robot{
 	public void render(Graphics g) {
 		g.drawImage(Assets.ghost, location.ix() - WIDTH/2, location.iy() - HEIGHT/2, WIDTH, HEIGHT, null);
 	}
+	
 }

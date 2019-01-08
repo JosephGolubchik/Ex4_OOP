@@ -25,5 +25,9 @@ public class Player extends Robot{
 		g.drawImage(Assets.player, location.ix() - WIDTH/2, location.iy() - HEIGHT/2, WIDTH, HEIGHT, null);
 	}
 	
+	public void setLocation(Point3D location) {
+		this.location = location;
+	}
+	
 
 }
