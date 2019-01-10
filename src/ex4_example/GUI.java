@@ -1,4 +1,5 @@
 package ex4_example;
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -12,7 +13,10 @@ import java.util.Iterator;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JMenuBar;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.filechooser.FileSystemView;
 
 import Coords.Cords;
@@ -20,6 +24,7 @@ import Coords.LatLonAlt;
 import Geom.Point3D;
 import Robot.Play;
 import algo.A_Star_2;
+import database.Database;
 import entities.Box;
 import entities.Fruit;
 import entities.Ghost;
@@ -33,16 +38,17 @@ public class GUI implements Runnable {
 
 	//Display
 	private Display display;
+	private Display database;
 	private int width, height;
 	private BufferStrategy bs;
 	private Graphics g;
 	private Thread thread;
-	
+
 	//Game
 	private GameBoard board;
 	private String game_file_name;
-	
-//	private int escape_count = 0;
+
+	//	private int escape_count = 0;
 
 	//Input
 	private KeyManager keyManager;
@@ -78,14 +84,19 @@ public class GUI implements Runnable {
 		Assets.loadImages();
 		width = Assets.map.getWidth();
 		height =  Assets.map.getHeight();
+
+		createDatabase();
+
 		display = new Display("Packman", width, height);
 		display.getFrame().addKeyListener(keyManager);
 		display.getFrame().addMouseListener(mouseManager);
-		
+
+		//        database.getFrame().add(new JButton()); 
+
 		JMenuBar menubar = new JMenuBar();
+
 		JButton openBtn = new JButton("Open");
-		JButton runBtn = new JButton("Run");
-		
+
 		openBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
@@ -99,7 +110,9 @@ public class GUI implements Runnable {
 				}
 			}         
 		});  
-		
+
+		JButton runBtn = new JButton("Run");
+
 		runBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
@@ -107,12 +120,91 @@ public class GUI implements Runnable {
 				playing = true;
 			}         
 		});  
-		
+
+		JButton databaseBtn = new JButton("Database");
+
+		databaseBtn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				database.getFrame().setVisible(true);
+			}         
+		}); 
+
 		menubar.add(openBtn);
 		menubar.add(runBtn);
+		menubar.add(databaseBtn);
+
 		display.getFrame().setJMenuBar(menubar);
 
 
+		display.getFrame().pack();
+
+	}
+	
+	private JTable createTable() {
+		String[] columnNames = { "FirstID", "SecondID", "ThirdID", "LogTime", "Point", "SomeDouble"}; 
+		ArrayList<String[]> results = Database.queryData("SELECT * FROM logs ORDER BY LogTime DESC;");
+		String[][] data = new String[results.size()][];
+		for (int i = 0; i < results.size(); i++) {
+			String[] row = results.get(i);
+			data[i] = row;
+		}
+		return new JTable(data, columnNames); 
+	}
+
+	private void createDatabase() {
+		database = new Display("",800,500);
+		database.getFrame().setVisible(false);
+		database.getFrame().setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		
+		JTable table = createTable();
+		
+		// adding it to JScrollPane 
+		JScrollPane sp = new JScrollPane(table); 
+		database.getFrame().add(sp, BorderLayout.NORTH); 
+
+		JMenuBar dbmenubar = new JMenuBar();
+
+		JButton refreshBtn = new JButton("Refresh");
+
+		refreshBtn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				JTable table = createTable();
+				JScrollPane sp = new JScrollPane(table); 
+				database.getFrame().add(sp, BorderLayout.NORTH); 
+				database.getFrame().revalidate();
+				database.getFrame().repaint();
+			}         
+		});  
+
+		JButton runBtn = new JButton("Run");
+
+		runBtn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				board.startGame();
+				playing = true;
+			}         
+		});  
+
+		JButton databaseBtn = new JButton("Database");
+
+		databaseBtn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				database.getFrame().setVisible(true);
+			}         
+		}); 
+
+		dbmenubar.add(refreshBtn);
+		dbmenubar.add(runBtn);
+		dbmenubar.add(databaseBtn);
+
+		database.getFrame().setJMenuBar(dbmenubar);
+
+
+		//        database.getFrame().pack();
 	}
 
 	/**
@@ -139,24 +231,24 @@ public class GUI implements Runnable {
 	 * - Moves the player according to the optimal apth and recalculates when needed after 't' is pressed once, stops if 't' is pressed again.
 	 */
 	private void move() {
-//		if(keyManager.down)
-//			play.rotate(0);
-//		if(keyManager.right)
-//			play.rotate(90);
-//		if(keyManager.up)
-//			play.rotate(180);
-//		if(keyManager.left)
-//			play.rotate(270);
-//		if(keyManager.e)
-//			calcPath();
-//		if(keyManager.r)
-//			calcAngle();
-//		if(keyManager.t) {
-////			calcPath();
-//			playing = false;
-//		}
+		//		if(keyManager.down)
+		//			play.rotate(0);
+		//		if(keyManager.right)
+		//			play.rotate(90);
+		//		if(keyManager.up)
+		//			play.rotate(180);
+		//		if(keyManager.left)
+		//			play.rotate(270);
+		//		if(keyManager.e)
+		//			calcPath();
+		//		if(keyManager.r)
+		//			calcAngle();
+		//		if(keyManager.t) {
+		////			calcPath();
+		//			playing = false;
+		//		}
 	}
-	
+
 	private void drawString(String str, int x, Color c) {
 		g.setFont(new Font("Assistant", Font.BOLD, 18));
 		g.setColor(Color.black);
@@ -164,7 +256,7 @@ public class GUI implements Runnable {
 		g.setColor(c);
 		g.drawString(str, x+2, g.getFontMetrics().getHeight()-5);
 	}
-	
+
 	private void drawString(String str, int x, int y, Color c) {
 		g.setFont(new Font("Assistant", Font.BOLD, 18));
 		g.setColor(Color.black);
@@ -172,7 +264,7 @@ public class GUI implements Runnable {
 		g.setColor(c);
 		g.drawString(str, x+2, y-5);
 	}
-	
+
 	private void drawStats(Graphics g) {
 		int shift = 500;
 		String file_name = game_file_name.substring(game_file_name.lastIndexOf('\\')+9, game_file_name.length()-4);
@@ -196,6 +288,7 @@ public class GUI implements Runnable {
 	 * - Draws the players current path in white.
 	 */
 	private void render(){
+		display.getFrame().repaint();
 		bs = display.getCanvas().getBufferStrategy();
 		if(bs == null){
 			display.getCanvas().createBufferStrategy(3);
@@ -205,11 +298,11 @@ public class GUI implements Runnable {
 		//Clear Screen
 		g.clearRect(0, 0, width, height);
 		//Draw Here!
-		
+
 		// Draw ariel map image
 		g.drawImage(Assets.map, 0, 0, null);
-		
-//		if(board.isFirstLoaded() && board.getPlayer() != null && board.getPackmans() != null && board.getGhosts() != null && board.getFruits() != null && board.getBoxes() != null) {
+
+		//		if(board.isFirstLoaded() && board.getPlayer() != null && board.getPackmans() != null && board.getGhosts() != null && board.getFruits() != null && board.getBoxes() != null) {
 		if(board != null && board.isFirstLoaded()) {
 			drawBoard(board);
 
@@ -218,11 +311,11 @@ public class GUI implements Runnable {
 			if(!board.getFruits().isEmpty()) {
 				g.drawLine(board.getPlayer().getLocation().ix(), board.getPlayer().getLocation().iy(), board.closestFruit().ix(), board.closestFruit().iy());
 			}
-			
+
 			//Draw player path
 			if(board.isDidFirstPath())
 				drawPath(board.getPlayer().getPath());
-			
+
 			// Draw stats
 			g.setColor(new Color(0,0,0,100));
 			g.fillRect(0, 0, width, 25);
@@ -232,7 +325,7 @@ public class GUI implements Runnable {
 			g.setColor(new Color(0,0,0,100));
 			g.fillRect(0, 0, width, 25);
 		}
-		
+
 		//End Drawing!
 		bs.show();
 		g.dispose();
@@ -336,7 +429,7 @@ public class GUI implements Runnable {
 		}
 	}
 
-	
+
 
 	//Getters
 	public KeyManager getKeyManager() {
