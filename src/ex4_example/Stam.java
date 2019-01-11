@@ -22,19 +22,20 @@ public class Stam {
 			Statement statement = connection.createStatement();
 			
 			//select data
-			String allCustomersQuery = "SELECT FirstID, Point, LogTime, SomeDouble FROM logs WHERE SomeDouble=1.577914705E9;";
+			String allCustomersQuery = "SELECT * FROM logs;";
 			ResultSet resultSet = statement.executeQuery(allCustomersQuery);
 //			System.out.println("FirstID\t\tSecondID\tThirdID\t\tLogTime\t\t\t\tPoint\t\tSomeDouble");
 			while(resultSet.next())
 			{
+//				System.out.println(resultSet.getMetaData().getColumnName(2));
 				System.out.println(resultSet.getInt("FirstID")+"\t\t"+resultSet.getDouble("Point")+"\t\t"+resultSet.getTimestamp("LogTime")+"\t\t" +
 				resultSet.getDouble("SomeDouble"));
-//				System.out.println(resultSet.getInt("FirstID")+"\t\t" +
-//						resultSet.getInt("SecondID")+"\t\t" +
-//						resultSet.getInt("ThirdID")+"\t\t" +
-//						resultSet.getTimestamp("LogTime") +"\t\t\t\t" +
-//						resultSet.getDouble("Point") +"\t\t" +
-//						resultSet.getDouble("SomeDouble"));
+				System.out.println(resultSet.getInt("FirstID")+"\t\t" +
+						resultSet.getInt("SecondID")+"\t\t" +
+						resultSet.getInt("ThirdID")+"\t\t" +
+						resultSet.getTimestamp("LogTime") +"\t\t\t\t" +
+						resultSet.getDouble("Point") +"\t\t" +
+						resultSet.getDouble("SomeDouble"));
 			}
 			
 			resultSet.close();		

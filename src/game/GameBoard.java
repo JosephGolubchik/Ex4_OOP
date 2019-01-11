@@ -13,6 +13,7 @@ import entities.Fruit;
 import entities.Ghost;
 import entities.Packman;
 import entities.Player;
+import algo.Cell;
 
 public class GameBoard {
 
@@ -85,7 +86,7 @@ public class GameBoard {
 		
 		loadBoard();
 	}
-
+	
 	public void nextMove() {
 		loadBoard();
 		playAlgo();
@@ -206,7 +207,9 @@ public class GameBoard {
 			if(MyCoords.pixelDistance(player.getLocation(), closestFruit()) > 7 && !radiusInsideBox(player.getLocation(), 10) && !escaping) {
 				calcPath();
 			}
+			calcPath();
 			calcAngle();
+			didFirstPath = true;
 		}
 	}
 	
@@ -246,7 +249,9 @@ public class GameBoard {
 	 */
 	private void calcAngle() {
 //		if(!escaping) {
-			player.setPath(star.getPath());
+			ArrayList<Point3D> path = star.getPath();
+			path.add(closestFruit());
+			player.setPath(path);
 			if(player.getPath().size() - player.getDest_id() - 1 > 0) {
 				player.setDest(player.getPath().get(player.getPath().size() - player.getDest_id() - 1));
 				Point3D dest_gis = pixelsToPoint(player.getDest());
@@ -282,11 +287,12 @@ public class GameBoard {
 		if(fruits.size() > 0) {
 			Point3D player_loc = player.getLocation();
 			Point3D dest_loc = closestFruit();
-			if(MyCoords.pixelDistance(player_loc, dest_loc) < 30 || radiusNearBoxCorner(player.getLocation(), 10)) {
+//			if(MyCoords.pixelDistance(player_loc, dest_loc) < 30 || radiusNearBoxCorner(player.getLocation(), 10)) {
+			if(radiusNearBoxCorner(player.getLocation(), 10)) {
 				star = new A_Star_2(player_loc, dest_loc, boxes, this, 2);
 			}
 			else {
-				star = new A_Star_2(player_loc, dest_loc, boxes, this, 7);
+				star = new A_Star_2(player_loc, dest_loc, boxes, this, 10);
 			}
 			star.algo();
 		}
@@ -369,15 +375,8 @@ public class GameBoard {
 			Point3D top_right = new Point3D(bottom_right.ix(), top_left.iy());
 			Point3D bottom_left = new Point3D(top_left.ix(), bottom_right.iy());
 			Point3D[] corners = {top_left, bottom_right, top_right, bottom_left};
-			for (int x = 0; x < 2*radius+1; x++) {
-				for (int y = 0; y < 2*radius+1; y++) {
-					for (int i = 0; i < corners.length; i++) {
-						if((position.ix()-radius+x >= corners[i].ix()-radius && position.ix()-radius+x <= corners[i].ix()+radius) &&
-								(position.iy()-radius+y >= corners[i].iy()-radius && position.iy()-radius+y <= corners[i].iy()+radius)) {
-							return true;
-						}
-					}
-				}
+			for (int i = 0; i < corners.length; i++) {
+				if(MyCoords.pixelDistance(position, corners[i]) < radius) return true;
 			}
 		}
 		return false;
