@@ -1,10 +1,11 @@
-package ex4_example;
+package input;
 
 import java.awt.MouseInfo;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
 import Geom.Point3D;
+import gfx.GUI;
 
 public class MouseManager implements MouseListener{
 

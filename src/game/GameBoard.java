@@ -6,7 +6,6 @@ import java.util.Iterator;
 import Coords.LatLonAlt;
 import Geom.Point3D;
 import Robot.Play;
-import algo.A_Star_2;
 import algo.A_Star_3;
 import algo.Graph;
 import coords.MyCoords;
@@ -15,6 +14,10 @@ import entities.Fruit;
 import entities.Ghost;
 import entities.Packman;
 import entities.Player;
+
+/**
+ * This class contains all of the game objects and entities, and is responsible for running the game.
+ */
 
 public class GameBoard {
 
@@ -29,7 +32,6 @@ public class GameBoard {
 	private ArrayList<Ghost> ghosts;
 	private ArrayList<Fruit> fruits;
 	private ArrayList<Box> boxes;
-	private A_Star_2 star;
 	private A_Star_3 star3;
 	public Play play;
 	private Graph graph;
@@ -312,8 +314,6 @@ public class GameBoard {
 		Iterator<Fruit> it = fruits.iterator();
 		while(it.hasNext()) {
 			Fruit f = it.next();
-//			A_Star_2 s0 = new A_Star_2(player.getLocation(), f.getLocation(),boxes,this,20);
-//			s0.algo();
 			graph = new Graph(this);
 			star3 = new A_Star_3(player.getLocation(), f.getLocation(), boxes, this);
 			star3.algo();
@@ -350,9 +350,9 @@ public class GameBoard {
 	 * @return
 	 */
 	public double timePlayerToFruit(Fruit fruit) {
-		A_Star_2 st = new A_Star_2(player.getLocation(), fruit.getLocation(), boxes, this, 6);
-		st.algo();
-		double distance = st.pathDistance();
+		star3 = new A_Star_3(player.getLocation(), fruit.getLocation(), boxes, this);
+		star3.algo();
+		double distance = star3.pathDistance();
 		return distance/player.getSpeed();
 	}
 

@@ -1,5 +1,10 @@
-package ex4_example;
+package game;
 
+import gfx.GUI;
+
+/**
+ * Main class that launches the game.
+ */
 public class Launcher {
 
   public static void main(String[] args) {

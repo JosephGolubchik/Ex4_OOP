@@ -2,6 +2,10 @@ package algo;
 
 import java.util.ArrayList;
 
+/**
+ * Helper class for the A* algorithm, similar to a node in a linked list.
+ */
+
 public class Cell {
 	int x, y;
 	double fCost, gCost, hCost;

@@ -6,6 +6,10 @@ import java.util.ArrayList;
 import Geom.Point3D;
 import gfx.Assets;
 
+/**
+ * This class represents the player which we control during the game.
+ */
+
 public class Player extends Robot{
 
 	public final int WIDTH = 60;

@@ -1,4 +1,4 @@
-package ex4_example;
+package gfx;
 import java.awt.Canvas;
 import java.awt.Dimension;
 

@@ -5,6 +5,10 @@ import java.awt.Graphics;
 
 import Geom.Point3D;
 
+/**
+ * A box obstacle.
+ */
+
 public class Box{
 
 	public Point3D getTop_left_pix_point() {
@@ -58,17 +62,11 @@ public class Box{
 	public void render(Graphics g) {
 		g.setColor(new Color(50,50,50));
 		g.fillRect(top_left_pix_point.ix(), top_left_pix_point.iy(), width, height);
-//		g.setColor(Color.orange);
-//		g.fillOval(top_left_pix_point.ix() - 4, top_left_pix_point.iy() - 4, 8, 8);
-//		g.setColor(Color.blue);
-//		g.fillOval(top_right_pix_point.ix() - 4, top_right_pix_point.iy() - 4, 8, 8);
-//		g.setColor(Color.green);
-//		g.fillOval(bottom_left_pix_point.ix() - 4, bottom_left_pix_point.iy() - 4, 8, 8);
-//		g.setColor(Color.MAGENTA);
-//		g.fillOval(bottom_right_pix_point.ix() - 4, bottom_right_pix_point.iy() - 4, 8, 8);
-//		g.setColor(new Color(50,50,50));
 	}
 
+	/**
+	 * Checks if a point is inside the box.
+	 */
 	public boolean isInside(Point3D point) {
 		int margin = 0;
 		if( (point.ix() >= top_left_pix_point.ix() - margin && point.ix() <= bottom_right_pix_point.ix() + margin) &

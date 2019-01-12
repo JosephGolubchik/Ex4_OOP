@@ -11,6 +11,9 @@ import entities.Box;
 import entities.Fruit;
 import game.GameBoard;
 
+/**
+ * This class creates a visibillity graph representation of the gameboard, to be used in the A* algorithm.
+ */
 public class Graph {
 
 	GameBoard board;

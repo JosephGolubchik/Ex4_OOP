@@ -1,4 +1,4 @@
-package ex4_example;
+package gfx;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
@@ -23,7 +23,6 @@ import Coords.Cords;
 import Coords.LatLonAlt;
 import Geom.Point3D;
 import Robot.Play;
-import algo.A_Star_2;
 import database.Database;
 import entities.Box;
 import entities.Fruit;
@@ -33,11 +32,16 @@ import entities.Player;
 import entities.Robot;
 import game.GameBoard;
 import gfx.Assets;
+import input.KeyManager;
+import input.MouseManager;
 
+/**
+ * Responsible for creating the windows and drawing everything on the screen.
+ */
 public class GUI implements Runnable {
 
 	//Display
-	Display display;
+	public Display display;
 	private Display database;
 	private int width, height;
 	private BufferStrategy bs;
@@ -76,6 +80,7 @@ public class GUI implements Runnable {
 	 * - Load the needed images.
 	 * - Set the pixel width and height of the display to those of the map image.
 	 * - Create a display object which will create our GUI window.
+	 * - Create another display for the database table.
 	 * - Add mouse and keyboard listeners to our window.
 	 * - Load the initial game board, we get the board info as a string from our play object.
 	 */
@@ -94,6 +99,8 @@ public class GUI implements Runnable {
 
 		JButton openBtn = new JButton("Open");
 
+		JButton runBtn = new JButton("Run");
+		
 		openBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
@@ -101,6 +108,7 @@ public class GUI implements Runnable {
 				JFileChooser jfc = new JFileChooser("data");
 				int returnValue = jfc.showOpenDialog(null);
 				if (returnValue == JFileChooser.APPROVE_OPTION) {
+					runBtn.setText("Run");
 					File selectedFile = jfc.getSelectedFile();
 					game_file_name = selectedFile.getAbsolutePath();
 					board = new GameBoard(game_file_name);
@@ -108,8 +116,6 @@ public class GUI implements Runnable {
 			}         
 		});  
 		
-		JButton runBtn = new JButton("Run");
-
 		runBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
@@ -148,6 +154,9 @@ public class GUI implements Runnable {
 
 	}
 	
+	/**
+	 * Creates the database table.
+	 */
 	private JTable createTable(String query) {
 		ArrayList<String[]> results = null;
 		String[] columnNames = { "FirstID", "SecondID", "ThirdID", "LogTime", "Point", "Level"}; 
@@ -165,6 +174,9 @@ public class GUI implements Runnable {
 		return new JTable(data, columnNames); 
 	}
 
+	/**
+	 * Creates the database window and adds the table to it.
+	 */
 	private void createDatabase() {
 		database = new Display("",800,500);
 		database.getFrame().setVisible(false);
@@ -209,49 +221,11 @@ public class GUI implements Runnable {
 	private void tick(){
 		keyManager.tick();
 		if(playing) {
-			move();
 			board.nextMove();
 		}
 	}
 
-	/**
-	 * checks which keys are pressed and acts accordingly:
-	 * - Moves the player up, right, down or left while the corresponding 'aswd' key is pressed.
-	 * - Recalculates players optimal path while 'e' is pressed.
-	 * - Moves the player according to the latest path without recalculating while 'r' is pressed.
-	 * - Moves the player according to the optimal apth and recalculates when needed after 't' is pressed once, stops if 't' is pressed again.
-	 */
-	private void move() {
-		board.getPlayer().setDest(mouseManager.mousePosPoint());
-	}
-
-	private void drawString(String str, int x, Color c) {
-		g.setFont(new Font("Assistant", Font.BOLD, 18));
-		g.setColor(Color.black);
-		g.drawString(str, x, g.getFontMetrics().getHeight()-3);
-		g.setColor(c);
-		g.drawString(str, x+2, g.getFontMetrics().getHeight()-5);
-	}
-
-	private void drawString(String str, int x, int y, Color c) {
-		g.setFont(new Font("Assistant", Font.BOLD, 18));
-		g.setColor(Color.black);
-		g.drawString(str, x, y-3);
-		g.setColor(c);
-		g.drawString(str, x+2, y-5);
-	}
-
-	private void drawStats(Graphics g) {
-		int shift = 500;
-		String file_name = game_file_name.substring(game_file_name.lastIndexOf('\\')+9, game_file_name.length()-4);
-		double[] stats = board.getStats();
-		drawString(file_name, 5, Color.white);
-		drawString("Total Time: "+stats[0], 20 + shift, Color.white);
-		drawString("Time Left: "+stats[2], 220 + shift, Color.white);
-		drawString("Score: "+stats[1], 420 + shift, Color.white);
-		drawString("Killed by Ghosts: "+stats[3], 570 + shift, Color.white);
-		drawString("Out of Box: "+stats[4], 790 + shift, Color.white);
-	}
+	
 
 	/**
 	 * Main drawing function:
@@ -314,6 +288,67 @@ public class GUI implements Runnable {
 	}
 
 	/**
+	 * Draws the current path.
+	 * @param path
+	 */
+	public void drawPath(ArrayList<Point3D> path) {
+		Iterator<Point3D> it = path.iterator();
+		g.setColor(new Color(255,255,255,100));
+		while(it.hasNext()) {
+			Point3D point = it.next();
+			g.fillOval(point.ix()-4, point.iy()-4, 8, 8);
+		}
+	}
+
+	/**
+	 * Draws the packmans, ghosts, fruits, boxes and the player.
+	 */
+	private void drawBoard(GameBoard board) {
+		board.getPlayer().render(g);
+		Iterator<Packman> pack_it = board.getPackmans().iterator();
+		while(pack_it.hasNext())
+			pack_it.next().render(g);
+		Iterator<Ghost> ghost_it = board.getGhosts().iterator();
+		while(ghost_it.hasNext())
+			ghost_it.next().render(g);
+		Iterator<Fruit> fruit_it = board.getFruits().iterator();
+		while(fruit_it.hasNext())
+			fruit_it.next().render(g);
+		Iterator<Box> box_it = board.getBoxes().iterator();
+		while(box_it.hasNext())
+			box_it.next().render(g);
+	}
+
+	/**
+	 * Draws a string on the screen
+	 * @param str String to be drawn.
+	 * @param x X position.
+	 * @param c Font color.
+	 */
+	private void drawString(String str, int x, Color c) {
+		g.setFont(new Font("Assistant", Font.BOLD, 18));
+		g.setColor(Color.black);
+		g.drawString(str, x, g.getFontMetrics().getHeight()-3);
+		g.setColor(c);
+		g.drawString(str, x+2, g.getFontMetrics().getHeight()-5);
+	}
+
+	/**
+	 * Draws the statistics on the screen.
+	 */
+	private void drawStats(Graphics g) {
+		int shift = 500;
+		String file_name = game_file_name.substring(game_file_name.lastIndexOf('\\')+9, game_file_name.length()-4);
+		double[] stats = board.getStats();
+		drawString(file_name, 5, Color.white);
+		drawString("Total Time: "+stats[0], 20 + shift, Color.white);
+		drawString("Time Left: "+stats[2], 220 + shift, Color.white);
+		drawString("Score: "+stats[1], 420 + shift, Color.white);
+		drawString("Killed by Ghosts: "+stats[3], 570 + shift, Color.white);
+		drawString("Out of Box: "+stats[4], 790 + shift, Color.white);
+	}
+	
+	/**
 	 * Called when the GUI thread is started.
 	 * Makes sure the graphics are drawn at 60 frames per second.
 	 */
@@ -348,44 +383,7 @@ public class GUI implements Runnable {
 		}
 		stop();
 	}
-
-	/**
-	 * Draws the current path.
-	 * @param path
-	 */
-	public void drawPath(ArrayList<Point3D> path) {
-		Iterator<Point3D> it = path.iterator();
-		g.setColor(new Color(255,255,255,100));
-		while(it.hasNext()) {
-			Point3D point = it.next();
-			g.fillOval(point.ix()-4, point.iy()-4, 8, 8);
-		}
-	}
-
-	/**
-	 * Draws the packmans, ghosts, fruits, boxes and the player.
-	 * @param player
-	 * @param packmans
-	 * @param ghosts
-	 * @param fruits
-	 * @param boxes
-	 */
-	private void drawBoard(GameBoard board) {
-		board.getPlayer().render(g);
-		Iterator<Packman> pack_it = board.getPackmans().iterator();
-		while(pack_it.hasNext())
-			pack_it.next().render(g);
-		Iterator<Ghost> ghost_it = board.getGhosts().iterator();
-		while(ghost_it.hasNext())
-			ghost_it.next().render(g);
-		Iterator<Fruit> fruit_it = board.getFruits().iterator();
-		while(fruit_it.hasNext())
-			fruit_it.next().render(g);
-		Iterator<Box> box_it = board.getBoxes().iterator();
-		while(box_it.hasNext())
-			box_it.next().render(g);
-	}
-
+	
 	/**
 	 * Function that starts the thread.
 	 */

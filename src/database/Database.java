@@ -10,10 +10,19 @@ import java.util.Arrays;
 
 import javax.swing.JScrollPane;
 
+/**
+ * Class for getting information from the database.
+ */
+
 public class Database {
 	
 	public static JScrollPane sp;
 
+	/**
+	 * Creates an ArrayList of rows of data from the database.
+	 * @param query
+	 * @return
+	 */
 	public static ArrayList<String[]> queryData(String query) {
 		String jdbcUrl="jdbc:mysql://ariel-oop.xyz:3306/oop"; //?useUnicode=yes&characterEncoding=UTF-8&useSSL=false";
 		String jdbcUser="student";

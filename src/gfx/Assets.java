@@ -6,6 +6,10 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+/**
+ * The art assets of the game.
+ */
+
 public class Assets {
 
 	public static BufferedImage map;

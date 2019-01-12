@@ -9,8 +9,11 @@ import Geom.Point3D;
 import coords.MyCoords;
 import entities.Box;
 import entities.Ghost;
-import ex4_example.GUI;
 import game.GameBoard;
+
+/**
+ * This class calculates the shortest path between two given points using the A* algorithm.
+ */
 
 public class A_Star_3 {
 
@@ -34,7 +37,6 @@ public class A_Star_3 {
 	public boolean gridCreated;
 	public boolean didFirstCalc;
 	
-
 	public A_Star_3(Point3D start_point, Point3D end_point, ArrayList<Box> boxes, GameBoard board) {
 		this.boxes = boxes;
 		this.board = board;
