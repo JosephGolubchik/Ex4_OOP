@@ -283,7 +283,7 @@ public class A_Star_2 {
 				Iterator<Box> box_it = boxes.iterator();
 				while(box_it.hasNext()) {
 					Box box = box_it.next();
-					if(box.isInside(x*cell_size, y*cell_size)) {
+					if(box.isInside(new Point3D(x*cell_size, y*cell_size))) {
 						this.wall = true;
 					}
 				}

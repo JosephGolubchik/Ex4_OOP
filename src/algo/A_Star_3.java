@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import Geom.Point3D;
+import coords.MyCoords;
 import entities.Box;
 import entities.Ghost;
 import ex4_example.GUI;
@@ -34,15 +35,22 @@ public class A_Star_3 {
 	public boolean didFirstCalc;
 	
 
-	public A_Star_3(Cell start_point, Cell end_point, ArrayList<Box> boxes, GameBoard board) {
+	public A_Star_3(Point3D start_point, Point3D end_point, ArrayList<Box> boxes, GameBoard board) {
 		this.boxes = boxes;
 		this.board = board;
 		done = false;
 		path = new ArrayList<Cell>();
-		this.start_point = start_point;
-		this.end_point = end_point;
-		gridCreated = false;
-		didFirstCalc = false;
+		cells = board.getGraph().cells;
+		
+		for (Iterator<Cell> iterator = cells.iterator(); iterator.hasNext();) {
+			Cell cell = iterator.next();
+			if(cell.x == start_point.ix() && cell.y == start_point.iy()){
+				this.start_point = cell;
+			}
+			else if(cell.x == end_point.ix() && cell.y == end_point.iy()) {
+				this.end_point = cell;
+			}
+		}
 	}
 
 	public double heuristic(Cell c0, Cell c1) {
@@ -101,15 +109,8 @@ public class A_Star_3 {
 				Cell neigbour = it.next();
 				double tempG;
 				if(!closedSet.contains(neigbour)) {
-					if( (neigbour.x == curr_cell.x+1 && neigbour.y == curr_cell.y+1) ||
-							(neigbour.x == curr_cell.x-1 && neigbour.y == curr_cell.y+1) ||
-							(neigbour.x == curr_cell.x+1 && neigbour.y == curr_cell.y-1) ||
-							(neigbour.x == curr_cell.x-1 && neigbour.y == curr_cell.y-1) ) {
-						tempG = curr_cell.gCost + Math.sqrt(2);
-					}
-					else {
-						tempG = curr_cell.gCost + 1;
-					}
+			
+					tempG = curr_cell.gCost + MyCoords.pixelDistance(new Point3D(curr_cell.x, curr_cell.y), new Point3D(neigbour.x, neigbour.y));
 
 					if(openSet.contains(neigbour)) {
 						if(tempG < neigbour.gCost) {

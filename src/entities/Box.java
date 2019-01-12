@@ -56,11 +56,21 @@ public class Box{
 	}
 
 	public void render(Graphics g) {
+		g.setColor(new Color(50,50,50));
 		g.fillRect(top_left_pix_point.ix(), top_left_pix_point.iy(), width, height);
+//		g.setColor(Color.orange);
+//		g.fillOval(top_left_pix_point.ix() - 4, top_left_pix_point.iy() - 4, 8, 8);
+//		g.setColor(Color.blue);
+//		g.fillOval(top_right_pix_point.ix() - 4, top_right_pix_point.iy() - 4, 8, 8);
+//		g.setColor(Color.green);
+//		g.fillOval(bottom_left_pix_point.ix() - 4, bottom_left_pix_point.iy() - 4, 8, 8);
+//		g.setColor(Color.MAGENTA);
+//		g.fillOval(bottom_right_pix_point.ix() - 4, bottom_right_pix_point.iy() - 4, 8, 8);
+//		g.setColor(new Color(50,50,50));
 	}
 
 	public boolean isInside(Point3D point) {
-		int margin = 20;
+		int margin = 0;
 		if( (point.ix() >= top_left_pix_point.ix() - margin && point.ix() <= bottom_right_pix_point.ix() + margin) &
 				(point.iy() >= top_left_pix_point.iy() - margin && point.iy() <= bottom_right_pix_point.iy() + margin) ) {
 			return true;

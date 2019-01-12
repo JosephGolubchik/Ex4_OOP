@@ -311,6 +311,9 @@ public class GUI implements Runnable {
 			if(!board.getFruits().isEmpty()) {
 				g.drawLine(board.getPlayer().getLocation().ix(), board.getPlayer().getLocation().iy(), board.closestFruit().ix(), board.closestFruit().iy());
 			}
+			
+			if(board.getGraph() != null)
+				board.getGraph().drawGraph(g);
 
 			//Draw player path
 			if(board.isDidFirstPath())
@@ -376,7 +379,7 @@ public class GUI implements Runnable {
 		g.setColor(Color.white);
 		while(it.hasNext()) {
 			Point3D point = it.next();
-			g.fillRect(point.ix(), point.iy(), 2, 2);
+			g.fillRect(point.ix()-5, point.iy()-5, 10, 10);
 		}
 	}
 

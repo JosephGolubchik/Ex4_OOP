@@ -7,13 +7,14 @@ import Coords.LatLonAlt;
 import Geom.Point3D;
 import Robot.Play;
 import algo.A_Star_2;
+import algo.A_Star_3;
+import algo.Graph;
 import coords.MyCoords;
 import entities.Box;
 import entities.Fruit;
 import entities.Ghost;
 import entities.Packman;
 import entities.Player;
-import algo.Cell;
 
 public class GameBoard {
 
@@ -29,7 +30,9 @@ public class GameBoard {
 	private ArrayList<Fruit> fruits;
 	private ArrayList<Box> boxes;
 	private A_Star_2 star;
+	private A_Star_3 star3;
 	private Play play;
+	private Graph graph;
 	
 	// Map
 	private int height;
@@ -85,6 +88,7 @@ public class GameBoard {
 		play.setInitLocation(initLocation.x()+0.0005, initLocation.y()+0.0005);
 		
 		loadBoard();
+		graph = new Graph(this);
 	}
 	
 	public void nextMove() {
@@ -196,17 +200,6 @@ public class GameBoard {
 	 */
 	public void playAlgo() {
 		if(!fruits.isEmpty()) {
-			if(!didFirstPath) {
-				calcPath();
-				didFirstPath = true;
-			}
-			if(MyCoords.pixelDistance(player.getLocation(), closestGhost()) < 70 || escaping) {
-//				calcPath();
-//				escape();
-			}
-			if(MyCoords.pixelDistance(player.getLocation(), closestFruit()) > 7 && !radiusInsideBox(player.getLocation(), 10) && !escaping) {
-				calcPath();
-			}
 			calcPath();
 			calcAngle();
 			didFirstPath = true;
@@ -248,15 +241,14 @@ public class GameBoard {
 	 * - The angle the player needs to go in is the azimuth between the players location and the next point's location.
 	 */
 	private void calcAngle() {
-//		if(!escaping) {
-			ArrayList<Point3D> path = star.getPath();
+			ArrayList<Point3D> path = star3.getPath();
 			path.add(closestFruit());
 			player.setPath(path);
 			if(player.getPath().size() - player.getDest_id() - 1 > 0) {
 				player.setDest(player.getPath().get(player.getPath().size() - player.getDest_id() - 1));
 				Point3D dest_gis = pixelsToPoint(player.getDest());
 				Point3D player_gis = pixelsToPoint(player.getLocation());
-				int radius = 5;
+				int radius = 0;
 				// If close enough to current destination, start moving to next destination.
 				if((player.getLocation().ix() >= player.getDest().ix()-radius && player.getLocation().ix() <= player.getDest().ix()+radius) &&
 						(player.getLocation().iy() >= player.getDest().iy()-radius && player.getLocation().iy() <= player.getDest().iy()+radius)) {
@@ -269,11 +261,35 @@ public class GameBoard {
 				player.setDest_id(0);
 				calcPath();	
 			}
-//		}
-//		else {
-//			play.rotate(player.angle);
-//		}
 	}
+	
+//	private void calcAngle() {
+////		if(!escaping) {
+//			ArrayList<Point3D> path = star3.getPath();
+////			path.add(closestFruit());
+//			player.setPath(path);
+//			if(player.getPath().size() - player.getDest_id() - 1 > 0) {
+//				player.setDest(player.getPath().get(player.getPath().size() - player.getDest_id() - 1));
+//				Point3D dest_gis = pixelsToPoint(player.getDest());
+//				Point3D player_gis = pixelsToPoint(player.getLocation());
+//				int radius = 0;
+//				// If close enough to current destination, start moving to next destination.
+//				if((player.getLocation().ix() >= player.getDest().ix()-radius && player.getLocation().ix() <= player.getDest().ix()+radius) &&
+//						(player.getLocation().iy() >= player.getDest().iy()-radius && player.getLocation().iy() <= player.getDest().iy()+radius)) {
+//					player.setDest_id(player.getDest_id()+1);
+//				}
+//				player.angle = MyCoords.azimuth(player_gis, dest_gis);
+//				play.rotate(player.angle);
+//			}
+//			else {
+//				player.setDest_id(0);
+//				calcPath();	
+//			}
+////		}
+////		else {
+////			play.rotate(player.angle);
+////		}
+//	}
 	
 	/**
 	 * Calls the A-Star algorithm to calculate the shortest path from the player to his destination:
@@ -287,16 +303,31 @@ public class GameBoard {
 		if(fruits.size() > 0) {
 			Point3D player_loc = player.getLocation();
 			Point3D dest_loc = closestFruit();
-//			if(MyCoords.pixelDistance(player_loc, dest_loc) < 30 || radiusNearBoxCorner(player.getLocation(), 10)) {
-			if(radiusNearBoxCorner(player.getLocation(), 10)) {
-				star = new A_Star_2(player_loc, dest_loc, boxes, this, 2);
-			}
-			else {
-				star = new A_Star_2(player_loc, dest_loc, boxes, this, 10);
-			}
-			star.algo();
+			graph = new Graph(this);
+			star3 = new A_Star_3(player_loc, dest_loc, boxes, this);
+			star3.algo();
+			System.out.println(star3.getPath().size());
 		}
 
+	}
+//	public void calcPath() {
+//		if(fruits.size() > 0) {
+//			Point3D player_loc = player.getLocation();
+//			Point3D dest_loc = closestFruit();
+////			if(MyCoords.pixelDistance(player_loc, dest_loc) < 30 || radiusNearBoxCorner(player.getLocation(), 10)) {
+//			if(radiusNearBoxCorner(player.getLocation(), 10)) {
+//				star = new A_Star_2(player_loc, dest_loc, boxes, this, 2);
+//			}
+//			else {
+//				star = new A_Star_2(player_loc, dest_loc, boxes, this, 10);
+//			}
+//			star.algo();
+//		}
+//
+//	}
+
+	public Graph getGraph() {
+		return graph;
 	}
 
 	/**
@@ -309,10 +340,13 @@ public class GameBoard {
 		Iterator<Fruit> it = fruits.iterator();
 		while(it.hasNext()) {
 			Fruit f = it.next();
-			A_Star_2 s0 = new A_Star_2(player.getLocation(), f.getLocation(),boxes,this,20);
-			s0.algo();
-			if(s0.pathDistance() < minDistance) {
-				minDistance = s0.pathDistance();
+//			A_Star_2 s0 = new A_Star_2(player.getLocation(), f.getLocation(),boxes,this,20);
+//			s0.algo();
+			graph = new Graph(this);
+			star3 = new A_Star_3(player.getLocation(), f.getLocation(), boxes, this);
+			star3.algo();
+			if(star3.pathDistance() < minDistance) {
+				minDistance = star3.pathDistance();
 				closest = f;
 			}
 		}
@@ -394,7 +428,7 @@ public class GameBoard {
 			Box box = box_it.next();
 			for (int i = 0; i < 2*radius+1; i++) {
 				for (int j = 0; j < 2*radius+1; j++) {
-					if(box.isInside(position.ix() - radius + i, position.iy() - radius + j)) {
+					if(box.isInside(new Point3D(position.ix() - radius + i, position.iy() - radius + j))) {
 						return true;
 					}
 				}

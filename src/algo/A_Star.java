@@ -105,7 +105,7 @@ public class A_Star {
 				Iterator<Box> it = boxes.iterator();
 				while(it.hasNext() && searching) {
 					Box curr_box = it.next();
-					if(curr_box.isInside(x, y)) {
+					if(curr_box.isInside(new Point3D(x, y))) {
 						nodes[(y * mapWidth) + x].obstacle = true;
 						searching = false;
 					}
