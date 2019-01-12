@@ -19,9 +19,9 @@ import entities.Player;
 public class GameBoard {
 
 	// IDS
-	private final long ID_1 = 308019306; // Eli Haimov
-	private final long ID_2 = 209195353; // Yosef Golubchik
-	private final long ID_3 = 307993030; // Elad Cohen
+	public final long ID_1 = 308019306; // Eli Haimov
+	public final long ID_2 = 209195353; // Yosef Golubchik
+	public final long ID_3 = 307993030; // Elad Cohen
 	
 	// Objects
 	private Player player;
@@ -31,7 +31,7 @@ public class GameBoard {
 	private ArrayList<Box> boxes;
 	private A_Star_2 star;
 	private A_Star_3 star3;
-	private Play play;
+	public Play play;
 	private Graph graph;
 	
 	// Map
@@ -45,6 +45,7 @@ public class GameBoard {
 	private boolean firstLoaded = false;
 	private boolean didFirstPath = false;
 	private boolean escaping = false;
+	public boolean manual = false;
 	
 	// Board Stats
 	private String game_file_name = "";
@@ -200,9 +201,14 @@ public class GameBoard {
 	 */
 	public void playAlgo() {
 		if(!fruits.isEmpty()) {
-			calcPath();
-			calcAngle();
-			didFirstPath = true;
+			if(!manual) {
+				calcPath();
+				calcAngle();
+				didFirstPath = true;
+			}
+			else {
+				calcAngleManual();
+			}
 		}
 	}
 	
@@ -264,33 +270,14 @@ public class GameBoard {
 			}
 	}
 	
-//	private void calcAngle() {
-////		if(!escaping) {
-//			ArrayList<Point3D> path = star3.getPath();
-////			path.add(closestFruit());
-//			player.setPath(path);
-//			if(player.getPath().size() - player.getDest_id() - 1 > 0) {
-//				player.setDest(player.getPath().get(player.getPath().size() - player.getDest_id() - 1));
-//				Point3D dest_gis = pixelsToPoint(player.getDest());
-//				Point3D player_gis = pixelsToPoint(player.getLocation());
-//				int radius = 0;
-//				// If close enough to current destination, start moving to next destination.
-//				if((player.getLocation().ix() >= player.getDest().ix()-radius && player.getLocation().ix() <= player.getDest().ix()+radius) &&
-//						(player.getLocation().iy() >= player.getDest().iy()-radius && player.getLocation().iy() <= player.getDest().iy()+radius)) {
-//					player.setDest_id(player.getDest_id()+1);
-//				}
-//				player.angle = MyCoords.azimuth(player_gis, dest_gis);
-//				play.rotate(player.angle);
-//			}
-//			else {
-//				player.setDest_id(0);
-//				calcPath();	
-//			}
-////		}
-////		else {
-////			play.rotate(player.angle);
-////		}
-//	}
+	private void calcAngleManual() {
+		Point3D dest_gis = pixelsToPoint(player.getDest());
+		Point3D player_gis = pixelsToPoint(player.getLocation());
+		if(dest_gis != player_gis) {
+			player.angle = MyCoords.azimuth(player_gis, dest_gis);
+			play.rotate(player.angle);
+		}
+	}
 	
 	/**
 	 * Calls the A-Star algorithm to calculate the shortest path from the player to his destination:
@@ -310,21 +297,6 @@ public class GameBoard {
 		}
 
 	}
-//	public void calcPath() {
-//		if(fruits.size() > 0) {
-//			Point3D player_loc = player.getLocation();
-//			Point3D dest_loc = closestFruit();
-////			if(MyCoords.pixelDistance(player_loc, dest_loc) < 30 || radiusNearBoxCorner(player.getLocation(), 10)) {
-//			if(radiusNearBoxCorner(player.getLocation(), 10)) {
-//				star = new A_Star_2(player_loc, dest_loc, boxes, this, 2);
-//			}
-//			else {
-//				star = new A_Star_2(player_loc, dest_loc, boxes, this, 10);
-//			}
-//			star.algo();
-//		}
-//
-//	}
 
 	public Graph getGraph() {
 		return graph;

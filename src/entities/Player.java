@@ -21,7 +21,7 @@ public class Player extends Robot{
 		super(id,location,speed,radius);
 		angle = 0;
 		dest_id = 0;
-		dest = new Point3D(0,0);
+		dest = this.location;
 	}
 
 	public void render(Graphics g) {

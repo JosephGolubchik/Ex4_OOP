@@ -37,7 +37,7 @@ import gfx.Assets;
 public class GUI implements Runnable {
 
 	//Display
-	private Display display;
+	Display display;
 	private Display database;
 	private int width, height;
 	private BufferStrategy bs;
@@ -48,11 +48,10 @@ public class GUI implements Runnable {
 	private GameBoard board;
 	private String game_file_name;
 
-	//	private int escape_count = 0;
-
 	//Input
 	private KeyManager keyManager;
 	private MouseManager mouseManager;
+	private Point3D lastClicked;
 
 	//Flags
 	private boolean running = false;
@@ -68,7 +67,7 @@ public class GUI implements Runnable {
 	 */
 	public GUI(){
 		keyManager = new KeyManager();
-		mouseManager = new MouseManager();
+		mouseManager = new MouseManager(this);
 
 	}
 
@@ -91,8 +90,6 @@ public class GUI implements Runnable {
 		display.getFrame().addKeyListener(keyManager);
 		display.getFrame().addMouseListener(mouseManager);
 
-		//        database.getFrame().add(new JButton()); 
-
 		JMenuBar menubar = new JMenuBar();
 
 		JButton openBtn = new JButton("Open");
@@ -110,14 +107,25 @@ public class GUI implements Runnable {
 				}
 			}         
 		});  
-
+		
 		JButton runBtn = new JButton("Run");
 
 		runBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				board.startGame();
-				playing = true;
+				if(board.getStats()[0] == 0) {
+					board.startGame();
+					playing = true;
+					runBtn.setText("Pause");
+				}
+				else if(!playing) {
+					playing = true;
+					runBtn.setText("Pause");
+				}
+				else {
+					playing = false;
+					runBtn.setText("Run");
+				}
 			}         
 		});  
 
@@ -136,14 +144,19 @@ public class GUI implements Runnable {
 
 		display.getFrame().setJMenuBar(menubar);
 
-
 		display.getFrame().pack();
 
 	}
 	
-	private JTable createTable() {
-		String[] columnNames = { "FirstID", "SecondID", "ThirdID", "LogTime", "Point", "SomeDouble"}; 
-		ArrayList<String[]> results = Database.queryData("SELECT * FROM logs ORDER BY LogTime DESC;");
+	private JTable createTable(String query) {
+		ArrayList<String[]> results = null;
+		String[] columnNames = { "FirstID", "SecondID", "ThirdID", "LogTime", "Point", "Level"}; 
+		if(query.equals("")) {
+			results = Database.queryData("SELECT * FROM logs ORDER BY LogTime DESC;");
+		}
+		else {
+			results = Database.queryData(query);
+		}
 		String[][] data = new String[results.size()][];
 		for (int i = 0; i < results.size(); i++) {
 			String[] row = results.get(i);
@@ -157,11 +170,11 @@ public class GUI implements Runnable {
 		database.getFrame().setVisible(false);
 		database.getFrame().setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		
-		JTable table = createTable();
+		JTable table = createTable("");
 		
 		// adding it to JScrollPane 
-		JScrollPane sp = new JScrollPane(table); 
-		database.getFrame().add(sp, BorderLayout.NORTH); 
+		Database.sp = new JScrollPane(table); 
+		database.getFrame().add(Database.sp, BorderLayout.NORTH); 
 
 		JMenuBar dbmenubar = new JMenuBar();
 
@@ -170,41 +183,19 @@ public class GUI implements Runnable {
 		refreshBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				JTable table = createTable();
-				JScrollPane sp = new JScrollPane(table); 
-				database.getFrame().add(sp, BorderLayout.NORTH); 
+				database.getFrame().remove(Database.sp);
+				JTable table = createTable("");
+				Database.sp = new JScrollPane(table); 
+				database.getFrame().add(Database.sp, BorderLayout.NORTH); 
 				database.getFrame().revalidate();
 				database.getFrame().repaint();
 			}         
 		});  
-
-		JButton runBtn = new JButton("Run");
-
-		runBtn.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				board.startGame();
-				playing = true;
-			}         
-		});  
-
-		JButton databaseBtn = new JButton("Database");
-
-		databaseBtn.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				database.getFrame().setVisible(true);
-			}         
-		}); 
-
+	
 		dbmenubar.add(refreshBtn);
-		dbmenubar.add(runBtn);
-		dbmenubar.add(databaseBtn);
-
+		
 		database.getFrame().setJMenuBar(dbmenubar);
 
-
-		//        database.getFrame().pack();
 	}
 
 	/**
@@ -217,8 +208,8 @@ public class GUI implements Runnable {
 	 */
 	private void tick(){
 		keyManager.tick();
-		move();
 		if(playing) {
+			move();
 			board.nextMove();
 		}
 	}
@@ -231,22 +222,7 @@ public class GUI implements Runnable {
 	 * - Moves the player according to the optimal apth and recalculates when needed after 't' is pressed once, stops if 't' is pressed again.
 	 */
 	private void move() {
-		//		if(keyManager.down)
-		//			play.rotate(0);
-		//		if(keyManager.right)
-		//			play.rotate(90);
-		//		if(keyManager.up)
-		//			play.rotate(180);
-		//		if(keyManager.left)
-		//			play.rotate(270);
-		//		if(keyManager.e)
-		//			calcPath();
-		//		if(keyManager.r)
-		//			calcAngle();
-		//		if(keyManager.t) {
-		////			calcPath();
-		//			playing = false;
-		//		}
+		board.getPlayer().setDest(mouseManager.mousePosPoint());
 	}
 
 	private void drawString(String str, int x, Color c) {
@@ -299,17 +275,19 @@ public class GUI implements Runnable {
 		g.clearRect(0, 0, width, height);
 		//Draw Here!
 
-		// Draw ariel map image
+		// Draw Ariel map image
 		g.drawImage(Assets.map, 0, 0, null);
 
-		//		if(board.isFirstLoaded() && board.getPlayer() != null && board.getPackmans() != null && board.getGhosts() != null && board.getFruits() != null && board.getBoxes() != null) {
 		if(board != null && board.isFirstLoaded()) {
 			drawBoard(board);
 
-			// Draw straight line from player to closest fruit
-			g.setColor(Color.red);
-			if(!board.getFruits().isEmpty()) {
-				g.drawLine(board.getPlayer().getLocation().ix(), board.getPlayer().getLocation().iy(), board.closestFruit().ix(), board.closestFruit().iy());
+
+			// Draw straight line from player to destination
+			if(playing) {
+				g.setColor(new Color(255, 255, 255));
+				if(!board.getFruits().isEmpty()) {
+					g.drawLine(board.getPlayer().getLocation().ix(), board.getPlayer().getLocation().iy(), board.getPlayer().getDest().ix(), board.getPlayer().getDest().iy());
+				}
 			}
 			
 			// Draw Graph
@@ -377,10 +355,10 @@ public class GUI implements Runnable {
 	 */
 	public void drawPath(ArrayList<Point3D> path) {
 		Iterator<Point3D> it = path.iterator();
-		g.setColor(Color.white);
+		g.setColor(new Color(255,255,255,100));
 		while(it.hasNext()) {
 			Point3D point = it.next();
-			g.fillRect(point.ix()-5, point.iy()-5, 10, 10);
+			g.fillOval(point.ix()-4, point.iy()-4, 8, 8);
 		}
 	}
 

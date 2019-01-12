@@ -62,7 +62,7 @@ public class Graph {
 			Iterator<Cell> neigh_it = cell.neighbours.iterator();
 			while(neigh_it.hasNext()) {
 				Cell neigh = neigh_it.next();
-				g.setColor(new Color(255,255,255,50));
+				g.setColor(new Color(255,255,255,10));
 				g.drawLine(cell.x, cell.y, neigh.x, neigh.y);
 			}
 		}
