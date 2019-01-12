@@ -62,7 +62,7 @@ public class Graph {
 			Iterator<Cell> neigh_it = cell.neighbours.iterator();
 			while(neigh_it.hasNext()) {
 				Cell neigh = neigh_it.next();
-				g.setColor(Color.cyan);
+				g.setColor(new Color(255,255,255,50));
 				g.drawLine(cell.x, cell.y, neigh.x, neigh.y);
 			}
 		}
@@ -162,6 +162,7 @@ public class Graph {
 	private double lineXAtValue(Point3D p0, Point3D p1, int y) {
 		double dy = p1.y() - p0.y();
 		double dx = p1.x() - p0.x();
+		if(dx == 0) dx = 0.0001;
 		double m = dy/dx;
 		return (y - p0.y() + m*p0.x())/m;
 	}

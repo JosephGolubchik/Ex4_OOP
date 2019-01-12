@@ -312,10 +312,11 @@ public class GUI implements Runnable {
 				g.drawLine(board.getPlayer().getLocation().ix(), board.getPlayer().getLocation().iy(), board.closestFruit().ix(), board.closestFruit().iy());
 			}
 			
+			// Draw Graph
 			if(board.getGraph() != null)
 				board.getGraph().drawGraph(g);
 
-			//Draw player path
+			// Draw player path
 			if(board.isDidFirstPath())
 				drawPath(board.getPlayer().getPath());
 

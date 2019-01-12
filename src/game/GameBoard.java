@@ -223,7 +223,7 @@ public class GameBoard {
 	/**
 	 * Gets game statistics from play object and updates the board fields.
 	 */
-	private void updateStats() {
+	public void updateStats() {
 		String info = play.getStatistics();
 		String[] infos = info.split(" ");
 		total_time = Double.parseDouble(infos[8].substring(5));
@@ -242,9 +242,10 @@ public class GameBoard {
 	 */
 	private void calcAngle() {
 			ArrayList<Point3D> path = star3.getPath();
-			path.add(closestFruit());
+//			path.add(closestFruit());
+			path.remove(path.size()-1);
 			player.setPath(path);
-			if(player.getPath().size() - player.getDest_id() - 1 > 0) {
+			if(player.getPath().size() - player.getDest_id() - 1 >= 0) {
 				player.setDest(player.getPath().get(player.getPath().size() - player.getDest_id() - 1));
 				Point3D dest_gis = pixelsToPoint(player.getDest());
 				Point3D player_gis = pixelsToPoint(player.getLocation());
@@ -258,7 +259,7 @@ public class GameBoard {
 				play.rotate(player.angle);
 			}
 			else {
-				player.setDest_id(0);
+				player.setDest_id(1);
 				calcPath();	
 			}
 	}
@@ -306,7 +307,6 @@ public class GameBoard {
 			graph = new Graph(this);
 			star3 = new A_Star_3(player_loc, dest_loc, boxes, this);
 			star3.algo();
-			System.out.println(star3.getPath().size());
 		}
 
 	}
