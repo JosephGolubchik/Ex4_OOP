@@ -23,6 +23,7 @@ import Coords.Cords;
 import Coords.LatLonAlt;
 import Geom.Point3D;
 import Robot.Play;
+import algo.Cell;
 import database.Database;
 import entities.Box;
 import entities.Fruit;
@@ -100,7 +101,7 @@ public class GUI implements Runnable {
 		JButton openBtn = new JButton("Open");
 
 		JButton runBtn = new JButton("Run");
-		
+
 		openBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
@@ -115,7 +116,7 @@ public class GUI implements Runnable {
 				}
 			}         
 		});  
-		
+
 		runBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
@@ -153,7 +154,7 @@ public class GUI implements Runnable {
 		display.getFrame().pack();
 
 	}
-	
+
 	/**
 	 * Creates the database table.
 	 */
@@ -181,9 +182,9 @@ public class GUI implements Runnable {
 		database = new Display("",800,500);
 		database.getFrame().setVisible(false);
 		database.getFrame().setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		
+
 		JTable table = createTable("");
-		
+
 		// adding it to JScrollPane 
 		Database.sp = new JScrollPane(table); 
 		database.getFrame().add(Database.sp, BorderLayout.NORTH); 
@@ -203,9 +204,9 @@ public class GUI implements Runnable {
 				database.getFrame().repaint();
 			}         
 		});  
-	
+
 		dbmenubar.add(refreshBtn);
-		
+
 		database.getFrame().setJMenuBar(dbmenubar);
 
 	}
@@ -225,7 +226,7 @@ public class GUI implements Runnable {
 		}
 	}
 
-	
+
 
 	/**
 	 * Main drawing function:
@@ -257,13 +258,13 @@ public class GUI implements Runnable {
 
 
 			// Draw straight line from player to destination
-			if(playing) {
-				g.setColor(new Color(255, 255, 255));
-				if(!board.getFruits().isEmpty()) {
-					g.drawLine(board.getPlayer().getLocation().ix(), board.getPlayer().getLocation().iy(), board.getPlayer().getDest().ix(), board.getPlayer().getDest().iy());
-				}
-			}
-			
+			//			if(playing) {
+			//				g.setColor(new Color(255, 255, 255));
+			//				if(!board.getFruits().isEmpty()) {
+			//					g.drawLine(board.getPlayer().getLocation().ix(), board.getPlayer().getLocation().iy(), board.getPlayer().getDest().ix(), board.getPlayer().getDest().iy());
+			//				}
+			//			}
+
 			// Draw Graph
 			if(board.getGraph() != null)
 				board.getGraph().drawGraph(g);
@@ -292,11 +293,18 @@ public class GUI implements Runnable {
 	 * @param path
 	 */
 	public void drawPath(ArrayList<Point3D> path) {
-		Iterator<Point3D> it = path.iterator();
-		g.setColor(new Color(255,255,255,100));
-		while(it.hasNext()) {
-			Point3D point = it.next();
-			g.fillOval(point.ix()-4, point.iy()-4, 8, 8);
+		ArrayList<Point3D> path_copy = path;
+		path_copy.add(board.getPlayer().getLocation());
+		Point3D last = path.get(0);
+		g.setColor(new Color(255, 255, 255));
+		g.fillOval(last.ix()-3, last.iy()-3, 6, 6);
+		for (int i = 1; i < path.size(); i++) {
+			Point3D curr = path.get(i);
+			g.setColor(new Color(255, 255, 255));
+			g.drawLine(last.ix(), last.iy(), curr.ix(), curr.iy());
+			if(i < path.size() - 1)
+				g.fillOval(curr.ix()-4, curr.iy()-4, 8, 8);
+			last = curr;
 		}
 	}
 
@@ -347,7 +355,7 @@ public class GUI implements Runnable {
 		drawString("Killed by Ghosts: "+stats[3], 570 + shift, Color.white);
 		drawString("Out of Box: "+stats[4], 790 + shift, Color.white);
 	}
-	
+
 	/**
 	 * Called when the GUI thread is started.
 	 * Makes sure the graphics are drawn at 60 frames per second.
@@ -383,7 +391,7 @@ public class GUI implements Runnable {
 		}
 		stop();
 	}
-	
+
 	/**
 	 * Function that starts the thread.
 	 */
