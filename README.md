@@ -9,7 +9,7 @@
 </h5>
 
 <p>
-  In this proejct we were given a game where there is a map with fruits, packmans, box obstacles and our player.
+  In this project we were given a game where there is a map with fruits, packmans, box obstacles and our player.
   The changes we could make to the game is decide what our player will do, with the goal of getting as good a score as possible.
 </p>
 
