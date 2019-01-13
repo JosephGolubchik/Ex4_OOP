@@ -14,5 +14,5 @@
 </p>
 
 <p align="center">
-  <img width="870" height="408" src="https://github.com/JosephGolubchik/Ex4_OOP/blob/master/packmangame.png?raw=true">
+  <img width="779" height="410" src="https://github.com/JosephGolubchik/Ex4_OOP/blob/master/Capture.PNG?raw=true">
 </p>
