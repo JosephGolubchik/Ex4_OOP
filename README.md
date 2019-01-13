@@ -14,5 +14,5 @@
 </p>
 
 <p align="center">
-  <img width="779" height="410" src="https://github.com/JosephGolubchik/Ex4_OOP/blob/master/Capture.PNG?raw=true">
+  <img width="779" height="451" src="https://github.com/JosephGolubchik/Ex4_OOP/blob/master/Capture.PNG?raw=true">
 </p>
